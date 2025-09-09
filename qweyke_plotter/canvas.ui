@@ -173,7 +173,7 @@
        </sizepolicy>
       </property>
       <property name="frameShape">
-       <enum>QFrame::Shape::NoFrame</enum>
+       <enum>QFrame::Box</enum>
       </property>
      </widget>
     </item>

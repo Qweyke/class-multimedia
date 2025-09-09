@@ -12,25 +12,9 @@ logging.addLevelName(PACKET_LEVEL, "PACKET")
 CURRENT_LVL = DEBUG
 
 
-class DpiLogger(logging.Logger):
+class CustomLogger(logging.Logger):
     def __init__(self, name: str, level=logging.NOTSET):
         super().__init__(name=name, level=level)
-
-    def packet(self, msg, sub_lvl=None, *args, **kwargs):
-        # extra = kwargs.get("extra", {})
-        # extra["sub_lvl"] = sub_lvl if sub_lvl else "-"
-        # kwargs["extra"] = extra
-
-        if self.isEnabledFor(PACKET_LEVEL):
-            self._log(PACKET_LEVEL, msg, args, **kwargs)
-
-    def info(self, msg, sub_lvl=None, *args, **kwargs):
-        # extra = kwargs.get("extra", {})
-        # extra["sub_lvl"] = sub_lvl if sub_lvl else "-"
-        # kwargs["extra"] = extra
-
-        if self.isEnabledFor(logging.INFO):
-            self._log(logging.INFO, msg, args, **kwargs)
 
 
 class ColorFormatter(logging.Formatter):
@@ -52,15 +36,20 @@ class ColorFormatter(logging.Formatter):
         return super().format(record)
 
 
-def get_dpi_logger(name: str = "dpi") -> DpiLogger:
+def get_custom_logger(name: str = "custom") -> CustomLogger:
     logger = logging.getLogger(name)
-    return cast(DpiLogger, logger)
+    return cast(CustomLogger, logger)
 
 
-logging.setLoggerClass(DpiLogger)
-dpi_logger = get_dpi_logger()
-dpi_logger.setLevel(level=CURRENT_LVL)
+logging.setLoggerClass(CustomLogger)
+logger = get_custom_logger()
+logger.setLevel(level=CURRENT_LVL)
 
-dpi_handler = logging.StreamHandler()
-dpi_handler.setFormatter(ColorFormatter(fmt="%(asctime)s [%(levelname)s] %(message)s", datefmt="%H:%M:%S"))
-dpi_logger.addHandler(dpi_handler)
+custom_handler = logging.StreamHandler()
+custom_handler.setFormatter(
+    ColorFormatter(
+        fmt="%(asctime)s [%(levelname)s] %(filename)s:%(lineno)d %(funcName)s() - %(message)s",
+        datefmt="%H:%M:%S",
+    )
+)
+logger.addHandler(custom_handler)

@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'canvas.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.8.2
+## Created by: Qt User Interface Compiler version 6.9.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -132,7 +132,7 @@ class Ui_MainWindow(object):
         self.plot_wdgt.setObjectName(u"plot_wdgt")
         sizePolicy.setHeightForWidth(self.plot_wdgt.sizePolicy().hasHeightForWidth())
         self.plot_wdgt.setSizePolicy(sizePolicy)
-        self.plot_wdgt.setFrameShape(QFrame.Shape.NoFrame)
+        self.plot_wdgt.setFrameShape(QFrame.Box)
 
         self.horizontalLayout.addWidget(self.plot_wdgt)
 
