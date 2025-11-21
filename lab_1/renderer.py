@@ -1,11 +1,15 @@
+from PySide6.QtCore import QPointF, QRectF
+from PySide6.QtGui import QBrush, QPolygonF, QPen, QColor
+
 from PIL.ImageQt import QPixmap
-from PySide6.QtCore import QRect
-from PySide6.QtGui import QPainter, QPen, Qt, QColor
+from PySide6.QtCore import QRect, QPoint
+from PySide6.QtGui import QPainter, QPen, Qt, QColor, QBrush, QPolygon
 from PySide6.QtWidgets import QWidget
 
-from custom_logger import logger
 
-BASE_CELL_SIZE_PX_PX = 40
+from log.custom_logger import logger
+
+BASE_CELL_SIZE_PX = 40
 Y_RANGE_INDENT = 1.1
 
 
@@ -21,8 +25,8 @@ class Renderer(QWidget):
         self._qt_center_x = None
         self._qt_center_y = None
 
-        self._cell_size_x = BASE_CELL_SIZE_PX_PX
-        self._cell_size_y = BASE_CELL_SIZE_PX_PX
+        self._cell_size_x = BASE_CELL_SIZE_PX
+        self._cell_size_y = BASE_CELL_SIZE_PX
 
     def _reinit_plotting_areas(self):
         def reinit_pixmap():
@@ -132,55 +136,6 @@ class Renderer(QWidget):
 
         logger.debug(f"Cell size: x - {self._cell_size_x}; y - {self._cell_size_y}")
 
-    def draw_function_test(
-        self,
-        func,
-        left_x: float,
-        right_x: float,
-        step: float = 1,
-        line_thickness: int = 2,
-    ):
-        logger.debug("Function plotting")
-        x = left_x
-        y_vals_list = []
-
-        while x <= right_x:
-            try:
-                y_vals_list.append(func(x))
-            except Exception as ex:
-                logger.error(f"Error at x={x}: {ex}")
-
-            x += step
-
-        self._calculate_cell_size_for_func(left_x, right_x, step, y_vals_list)
-        self._create_axis_grid()
-
-        # Create painter and restrict its action to plotting_rect area
-        painter = QPainter(self._pixmap)
-        painter.setClipRect(self._plotting_rect)
-        pen = QPen(Qt.blue, line_thickness, Qt.SolidLine)
-        painter.setPen(pen)
-
-        x = left_x
-        prev = None
-        while x <= right_x:
-            try:
-                y = func(x)
-                pixel_x, pixel_y = self._to_qt_coordinates(x, y)
-
-                if prev is not None:
-                    painter.drawLine(prev[0], prev[1], pixel_x, pixel_y)
-
-                prev = (pixel_x, pixel_y)
-
-            except Exception as ex:
-                logger.debug(f"Error at x={x}: {ex}")
-
-            x += step
-
-        painter.end()
-        self.update()
-
     def _create_axis_grid(self):
         logger.debug(
             f"Creating axis grid, [{self._plotting_rect.width()}; {self._plotting_rect.height()}], cell: [{self._cell_size_x}; {self._cell_size_y}]"
@@ -264,104 +219,141 @@ class Renderer(QWidget):
         painter.end()
         self.update()
 
-    # def draw_function(self, func, x_start, x_end, step=0.1):
-    #     self._last_func = partial(self.draw_function, func, x_start, x_end, step)
-    #
-    #     painter = QPainter(self._pixmap)
-    #     painter.setClipRect(self._plotting_rect)
-    #     pen = QPen(Qt.blue, 2)
-    #     painter.setPen(pen)
-    #
-    #     x = x_start
-    #     prev = None
-    #     while x <= x_end:
-    #         try:
-    #             y = func(x)
-    #             px, py = self._to_pyside_coords(x, y)
-    #             if math.isfinite(y):
-    #                 if prev is not None:
-    #                     if abs(prev[1] - py) < self.height():
-    #                         painter.drawLine(prev[0], prev[1], px, py)
-    #                 prev = (px, py)
-    #             else:
-    #                 prev = None
-    #
-    #         except (ZeroDivisionError, ValueError, OverflowError):
-    #             prev = None
-    #
-    #         except Exception as ex:
-    #             logger.debug(f"Error at x={x}: {ex}")
-    #
-    #         x += step
-    #
-    #     painter.end()
-    #     self.update()
+    def draw_function(
+        self,
+        func,
+        left_x: float,
+        right_x: float,
+        step: float = 1,
+        line_thickness: int = 2,
+    ):
+        logger.debug("Function plotting")
+        x = left_x
+        y_vals_list = []
 
-    # def draw_function_cones(self, func, x_start, x_end, color=QColor(80, 160, 255), step=0.1):
-    #     self._last_func = partial(self.draw_function_cones, func, x_start, x_end, color, step)
-    #
-    #     painter = QPainter(self._pixmap)
-    #     painter.setClipRect(self._plotting_rect)
-    #
-    #     cone_width = 1.0
-    #     x = x_start
-    #     prev_y = None
-    #     max_y_jump = (self._logical_range_y * 0.3)
-    #     while x <= x_end:
-    #         try:
-    #             y = func(x)
-    #
-    #             if not math.isfinite(y):
-    #                 prev_y = None
-    #                 x += step
-    #                 continue
-    #
-    #             if prev_y is not None and abs(y - prev_y) > max_y_jump:
-    #                 prev_y = y
-    #                 x += step
-    #                 continue
-    #
-    #             qt_top_x, qt_top_y = self._to_pyside_coords(x, y)
-    #             qt_left_x, qt_left_y = self._to_pyside_coords(x - cone_width / 2, 0)
-    #             qt_right_x, qt_right_y = self._to_pyside_coords(x + cone_width / 2, 0)
-    #
-    #             top_point = QPoint(qt_top_x, qt_top_y)
-    #             left_point = QPoint(qt_left_x, qt_left_y)
-    #             right_point = QPoint(qt_right_x, qt_right_y)
-    #
-    #             cone = QPolygon([top_point, left_point, right_point])
-    #             painter.setBrush(QBrush(color))
-    #             painter.setPen(QPen(QColor(0, 0, 0), 0.5))
-    #             painter.drawPolygon(cone)
-    #
-    #             # Преобразуем центр и радиусы
-    #             cx, cy = self._to_pyside_coords(x, 0)
-    #             rx = abs(left_point.x() - right_point.x()) // 2
-    #             ry = int(0.1 * abs(y) * self._scale * (self._plotting_rect.height() / (2 * self._logical_range_y)))
-    #
-    #             # QRect, in ellipse
-    #             rect = QRect(cx - rx, cy - ry, 2 * rx, 2 * ry)
-    #
-    #             # Left side
-    #             painter.setPen(Qt.NoPen)
-    #             painter.setBrush(QBrush(color.darker(150)))
-    #             painter.drawPie(rect, 180 * 16, 90 * 16)  # from 180° to 270° left
-    #
-    #             # Right side
-    #             painter.setBrush(QBrush(color))
-    #             painter.drawPie(rect, 270 * 16, 90 * 16)
-    #
-    #             # Draw shadow
-    #             shadow = QPolygon([top_point, left_point, QPoint(top_point.x(), left_point.y())])
-    #             painter.setBrush(QBrush(color.darker(150)))
-    #             painter.drawPolygon(shadow)
-    #
-    #         except (ZeroDivisionError, ValueError, OverflowError):
-    #             prev_y = None
-    #         except Exception as e:
-    #             logger.debug(f"Error at x={x}: {e}")
-    #
-    #         x += step
-    #
-    #     painter.end()
-    #     self.update()
+        while x <= right_x:
+            try:
+                y_vals_list.append(func(x))
+            except Exception as ex:
+                logger.error(f"Error at x={x}: {ex}")
+
+            x += step
+
+        self._calculate_cell_size_for_func(left_x, right_x, step, y_vals_list)
+        self._create_axis_grid()
+
+        # Create painter and restrict its action to plotting_rect area
+        painter = QPainter(self._pixmap)
+        painter.setClipRect(self._plotting_rect)
+        pen = QPen(Qt.blue, line_thickness, Qt.SolidLine)
+        painter.setPen(pen)
+
+        x = left_x
+        prev = None
+        while x <= right_x:
+            try:
+                y = func(x)
+                pixel_x, pixel_y = self._to_qt_coordinates(x, y)
+
+                if prev is not None:
+                    painter.drawLine(prev[0], prev[1], pixel_x, pixel_y)
+
+                prev = (pixel_x, pixel_y)
+
+            except Exception as ex:
+                logger.debug(f"Error at x={x}: {ex}")
+
+            x += step
+
+        painter.end()
+        self.update()
+
+    def draw_function_cones3d(
+        self,
+        func,
+        x_start: float,
+        x_end: float,
+        step: float = 0.2,
+        cone_width: float = 1.0,
+        color: QColor = QColor(220, 20, 120),  # яркий малиновый, как в примере
+    ):
+        logger.debug("Drawing 3D cones")
+
+        painter = QPainter(self._pixmap)
+        painter.setClipRect(self._plotting_rect)
+
+        x = x_start
+        last_y = None
+
+        # Основной цвет
+        base_color = QColor(color)
+        # Тень
+        dark_color = QColor(color.darker(160))
+        # Светлая грань
+        light_color = QColor(color.lighter(140))
+
+        while x <= x_end:
+            try:
+                y = func(x)
+
+                # логические → пиксельные координаты
+                top_x, top_y = self._to_qt_coordinates(x, y)
+                base_left_x, base_left_y = self._to_qt_coordinates(
+                    x - cone_width / 2, 0
+                )
+                base_right_x, base_right_y = self._to_qt_coordinates(
+                    x + cone_width / 2, 0
+                )
+                center_x, center_y = self._to_qt_coordinates(x, 0)
+
+                # Радиусы эллипса (основания)
+                rx = abs(base_left_x - base_right_x) // 2
+                ry = max(3, int(0.25 * rx))  # небольшой "сплюснутый" эллипс
+
+                # Прямоугольник под эллипс
+                ell_rect = QRect(center_x - rx, center_y - ry, 2 * rx, 2 * ry)
+
+                # --- ЛЕВАЯ ТЕНЕВАЯ ГРАНЬ ---
+                left_poly = QPolygon(
+                    [
+                        QPoint(top_x, top_y),
+                        QPoint(base_left_x, base_left_y),
+                        QPoint(center_x, center_y),
+                    ]
+                )
+                painter.setBrush(QBrush(dark_color))
+                painter.setPen(Qt.NoPen)
+                painter.drawPolygon(left_poly)
+
+                # --- ПРАВАЯ СВЕТЛАЯ ГРАНЬ ---
+                right_poly = QPolygon(
+                    [
+                        QPoint(top_x, top_y),
+                        QPoint(base_right_x, base_right_y),
+                        QPoint(center_x, center_y),
+                    ]
+                )
+                painter.setBrush(QBrush(light_color))
+                painter.drawPolygon(right_poly)
+
+                # --- ОСНОВНОЙ ЭЛЛИПС (основание конуса) ---
+                # задняя часть эллипса — тёмная (создаёт глубину)
+                painter.setBrush(QBrush(dark_color))
+                painter.drawPie(ell_rect, 0 * 16, 180 * 16)
+
+                # передняя — светлая
+                painter.setBrush(QBrush(light_color))
+                painter.drawPie(ell_rect, 180 * 16, 180 * 16)
+
+                # Черные тонкие края эллипса
+                painter.setPen(QPen(Qt.black, 0.7))
+                painter.setBrush(Qt.NoBrush)
+                painter.drawEllipse(ell_rect)
+
+            except Exception as ex:
+                logger.debug(f"Error at x={x}: {ex}")
+
+            x += step
+
+        painter.end()
+        self.update()
