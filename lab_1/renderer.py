@@ -103,15 +103,14 @@ class Renderer(QWidget):
 
         logger.debug("Draw Areas: Success")
 
-    def _to_qt_coordinates(self, logic_x, logic_y) -> tuple[int, int]:
-        pixel_x = self._qt_center_x + (logic_x * self._cell_size_x)
-        pixel_y = self._qt_center_y - (logic_y * self._cell_size_y)
-        return int(pixel_x), int(pixel_y)
+    def _to_qt_coordinates(self, logic_x, logic_y):
+        x = self._plotting_rect.left() + (logic_x - self._func_left_x) * self._cell_size_x
+        y = self._plotting_rect.top() + (self._func_y_max - logic_y) * self._cell_size_y
+        return int(x), int(y)
 
-    def _to_logic_coordinates(self, pixel_x, pixel_y) -> tuple[float, float]:
-        logic_x = (pixel_x - self._qt_center_x) / self._cell_size_x
-        # Invert to qt coords
-        logic_y = -(pixel_y - self._qt_center_y) / self._cell_size_y
+    def _to_logic_coordinates(self, qt_x, qt_y):
+        logic_x = self._func_left_x + (qt_x - self._plotting_rect.left()) / self._cell_size_x
+        logic_y = self._func_y_max - (qt_y - self._plotting_rect.top()) / self._cell_size_y
         return logic_x, logic_y
 
     def clear_canvas(self):
@@ -122,19 +121,27 @@ class Renderer(QWidget):
         self.update()
 
     def _calculate_cell_size_for_func(self, left_x, right_x, step, y_vals: list[float]):
-        # Calculate cell x-size
+        # --- Save function range (NECESSARY for convertors) ---
+        self._func_left_x = left_x
+        self._func_right_x = right_x
+
+        y_sorted = sorted(y_vals)
+        self._func_y_max = y_sorted[-1]
+        self._func_y_min = y_sorted[0]
+
+        # --- Calculate X cell size ---
         points_num = right_x - left_x
         self._cell_size_x = self._plotting_rect.width() / points_num / step
 
-        # Calculate cell y-size
-        y_sorted = sorted(y_vals)
-        y_top_value = y_sorted[int(len(y_sorted)) - 1]
-        y_bottom_value = y_sorted[0]
-
-        y_range = y_top_value - y_bottom_value
+        # --- Calculate Y cell size ---
+        y_range = self._func_y_max - self._func_y_min
         self._cell_size_y = self._plotting_rect.height() / (y_range * Y_RANGE_INDENT)
 
-        logger.debug(f"Cell size: x - {self._cell_size_x}; y - {self._cell_size_y}")
+        logger.debug(
+            f"Cell size: x={self._cell_size_x}, y={self._cell_size_y}; "
+            f"Y-range: {self._func_y_min}..{self._func_y_max}"
+    )
+
 
     def _create_axis_grid(self):
         logger.debug(
