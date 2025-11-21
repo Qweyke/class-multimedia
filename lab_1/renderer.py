@@ -276,34 +276,56 @@ class Renderer(QWidget):
         self.update()
 
     def draw_function_cones3d(
-        self,
-        func,
-        x_start: float,
-        x_end: float,
-        step: float = 0.2,
-        cone_width: float = 1.0,
-        color: QColor = QColor(220, 20, 120),  # яркий малиновый, как в примере
-    ):
+    self,
+    func,
+    x_start: float,
+    x_end: float,
+    step: float = 0.2,
+    cone_width: float = 1.0,
+    color: QColor = QColor(220, 20, 120),
+):
         logger.debug("Drawing 3D cones")
 
+        # ---------------------------
+        # 1) Collect ALL y-values
+        # ---------------------------
+        x = x_start
+        y_vals_list = []
+
+        while x <= x_end:
+            try:
+                y_vals_list.append(func(x))
+            except Exception as ex:
+                logger.error(f"Error at x={x}: {ex}")
+            x += step
+
+        if not y_vals_list:
+            logger.error("No y-values computed. Cannot draw cones.")
+            return
+
+        # ---------------------------
+        # 2) Auto-scale like normal graph
+        # ---------------------------
+        self._calculate_cell_size_for_func(x_start, x_end, step, y_vals_list)
+        self._create_axis_grid()
+
+        # ---------------------------
+        # 3) Start actual drawing
+        # ---------------------------
         painter = QPainter(self._pixmap)
         painter.setClipRect(self._plotting_rect)
 
+        base_color = QColor(color)
+        dark_color = QColor(color.darker(160))
+        light_color = QColor(color.lighter(140))
+
         x = x_start
         last_y = None
-
-        # Основной цвет
-        base_color = QColor(color)
-        # Тень
-        dark_color = QColor(color.darker(160))
-        # Светлая грань
-        light_color = QColor(color.lighter(140))
 
         while x <= x_end:
             try:
                 y = func(x)
 
-                # логические → пиксельные координаты
                 top_x, top_y = self._to_qt_coordinates(x, y)
                 base_left_x, base_left_y = self._to_qt_coordinates(
                     x - cone_width / 2, 0
@@ -313,14 +335,13 @@ class Renderer(QWidget):
                 )
                 center_x, center_y = self._to_qt_coordinates(x, 0)
 
-                # Радиусы эллипса (основания)
+                # ellipse radii
                 rx = abs(base_left_x - base_right_x) // 2
-                ry = max(3, int(0.25 * rx))  # небольшой "сплюснутый" эллипс
+                ry = max(3, int(0.25 * rx))
 
-                # Прямоугольник под эллипс
                 ell_rect = QRect(center_x - rx, center_y - ry, 2 * rx, 2 * ry)
 
-                # --- ЛЕВАЯ ТЕНЕВАЯ ГРАНЬ ---
+                # shadow side
                 left_poly = QPolygon(
                     [
                         QPoint(top_x, top_y),
@@ -332,7 +353,7 @@ class Renderer(QWidget):
                 painter.setPen(Qt.NoPen)
                 painter.drawPolygon(left_poly)
 
-                # --- ПРАВАЯ СВЕТЛАЯ ГРАНЬ ---
+                # bright side
                 right_poly = QPolygon(
                     [
                         QPoint(top_x, top_y),
@@ -343,16 +364,12 @@ class Renderer(QWidget):
                 painter.setBrush(QBrush(light_color))
                 painter.drawPolygon(right_poly)
 
-                # --- ОСНОВНОЙ ЭЛЛИПС (основание конуса) ---
-                # задняя часть эллипса — тёмная (создаёт глубину)
+                # ellipse
                 painter.setBrush(QBrush(dark_color))
                 painter.drawPie(ell_rect, 0 * 16, 180 * 16)
-
-                # передняя — светлая
                 painter.setBrush(QBrush(light_color))
                 painter.drawPie(ell_rect, 180 * 16, 180 * 16)
 
-                # Черные тонкие края эллипса
                 painter.setPen(QPen(Qt.black, 0.7))
                 painter.setBrush(Qt.NoBrush)
                 painter.drawEllipse(ell_rect)
@@ -364,3 +381,4 @@ class Renderer(QWidget):
 
         painter.end()
         self.update()
+
