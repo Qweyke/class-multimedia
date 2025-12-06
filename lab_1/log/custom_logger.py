@@ -6,9 +6,6 @@ from colorama import init, Fore, Style
 
 init(autoreset=True)
 
-PACKET_LEVEL = 15
-logging.addLevelName(PACKET_LEVEL, "PACKET")
-
 CURRENT_LVL = DEBUG
 
 
@@ -31,8 +28,6 @@ class ColorFormatter(logging.Formatter):
             record.msg = f"{Fore.LIGHTYELLOW_EX}{record.msg}{Style.RESET_ALL}"
         elif level == logging.ERROR:
             record.msg = f"{Fore.RED}{record.msg}{Style.RESET_ALL}"
-        elif level == PACKET_LEVEL:
-            record.msg = f"{Fore.GREEN}{record.msg}{Style.RESET_ALL}"
         return super().format(record)
 
 

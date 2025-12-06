@@ -1,23 +1,21 @@
 from PIL.ImageQt import QPixmap
 from PySide6.QtCore import QRect, QPointF, QPoint, QSize
-from PySide6.QtGui import QPainter, QPen, Qt, QColor, QBrush, QPolygon, QTransform
+from PySide6.QtGui import QPainter, QPen, Qt, QColor, QFont, QTransform
 from PySide6.QtWidgets import QWidget
 
 
-from log.custom_logger import logger
-
-
 class Renderer(QWidget):
-
     def __init__(self, parent=None):
         super().__init__(parent)
 
         self._cached_pixmap = None
-        self._view_port = None
-        self._logical_window = None
+        self._x_min = -10
+        self._y_min = 0
+        self._x_max = 10
+        self._y_max = 5
+        self._dots_qnty = 100
 
     def resizeEvent(self, event):
-        self._recalculate_painter_areas()
         self._build_axis_grid()
         self.update()
 
@@ -26,57 +24,73 @@ class Renderer(QWidget):
             painter = QPainter(self)
             painter.drawPixmap(QPointF(0, 0), self._cached_pixmap)
 
-    def _recalculate_painter_areas(self, x_min=-10, y_min=0, x_max=10, y_max=10):
-        # Initialize drawing cache
-        self._cached_pixmap = QPixmap(self.width(), self.height())
-
-        # Define plotting area in rectangle
+    def _calculate_transform(self):
+        # Define rendering area
         x_margin = int(self.width() * 0.05)
-        y_margin = int(self.height() * 0.01)
+        y_margin = int(self.height() * 0.05)
         rect_start_point = QPoint(x_margin, y_margin)
         rect_size = QSize((self.width() - 2 * x_margin), (self.height() - 2 * y_margin))
-        self._view_port = QRect(rect_start_point, rect_size)
+        render_area_rect = QRect(rect_start_point, rect_size)
 
-        # Set logical coordinates
-        coord_start_point = QPoint(x_min, y_max)
+        # Calculate ratio between qt and logic coords
+        scale_x = round(render_area_rect.width() / (self._x_max - self._x_min))
+        scale_y = round(render_area_rect.height() / (self._y_max - self._y_min))
 
-        coord_size = QSize(
-            x_max - x_min, -(y_max - y_min)
-        )  # <<! invert y coord by minus before height
-        self._logical_window = QRect(coord_start_point, coord_size)
+        # Move start point to logical axis start
+        dx = round(render_area_rect.x() - (self._x_min * scale_x))
+        dy = round(
+            render_area_rect.y() + render_area_rect.height() - (self._y_min * scale_y)
+        )
 
-    def _create_adjusted_painter(self):
-        adj_painter = QPainter(self._cached_pixmap)
-        adj_painter.setViewport(self._view_port)
-        adj_painter.setWindow(self._logical_window)
-        return adj_painter
+        print(f"Scale: {scale_x, scale_y}")
+        print(f"Differ {dx, dy}")
 
-    def _build_axis_grid(self, x_min=-10, y_min=0, x_max=10, y_max=10, dots_qnty=10):
-        # Clean pixmap
+        # Create affine matrix
+        transform = QTransform()
+        transform.translate(dx, dy)
+        transform.scale(scale_x, -scale_y)
+
+        return transform
+
+    def _math_point_to_pixels(self, plot_area: QRect, point: QPointF):
+        px_per_x_unit = plot_area.width() / (self._x_max - self._x_min)
+        px_per_y_unit = plot_area.height() / (self._y_max - self._y_min)
+        print(f"X-unit {px_per_x_unit}px , Y-unit {px_per_y_unit}px ")
+
+        px = plot_area.left() + (point.x() - self._x_min) * px_per_x_unit
+        py = plot_area.bottom() - (point.y() - self._y_min) * px_per_y_unit
+
+        return QPointF(px, py)
+
+    def _build_axis_grid(self):
+        # Initialize drawing cache, fill it in with mono-color
+        self._cached_pixmap = QPixmap(self.width(), self.height())
         self._cached_pixmap.fill(QColor(255, 255, 225))
 
-        painter = self._create_adjusted_painter()
+        painter = QPainter(self._cached_pixmap)
+        print(f"Viewport rect {painter.viewport()}")
 
-        # Draw plotting frame
-        painter.setPen(QPen(Qt.black, 0.05, Qt.SolidLine))
-        painter.drawRect(self._logical_window)
+        plot_area = painter.viewport()
 
-        # Draw grid lines
-        painter.setPen(QPen(Qt.black, 0, Qt.DotLine))
-        step_x = (x_max - x_min) / dots_qnty
-        print(step_x)
-        step_y = step_x
-
+        painter.setPen(QPen(Qt.gray, 1, Qt.DotLine))
         # Vertical
-        x = x_min + step_x
-        while x < x_max:
-            painter.drawLine(QPointF(x, y_min), QPointF(x, y_max))
+        step_x = (self._x_max - self._x_min) / self._dots_qnty
+        x = self._x_min + step_x
+        while x < self._x_max:
+            painter.drawLine(
+                self._math_point_to_pixels(plot_area, QPointF(x, self._y_min)),
+                self._math_point_to_pixels(plot_area, QPointF(x, self._y_max)),
+            )
             x += step_x
 
         # Horizontal
-        y = y_min + step_y
-        while y < y_max:
-            painter.drawLine(QPointF(x_min, y), QPointF(x_max, y))
+        step_y = (self._y_max - self._y_min) / self._dots_qnty
+        y = self._y_min + step_y
+        while y < self._y_max:
+            painter.drawLine(
+                self._math_point_to_pixels(plot_area, QPointF(self._x_min, y)),
+                self._math_point_to_pixels(plot_area, QPointF(self._x_max, y)),
+            )
             y += step_y
 
         painter.end()

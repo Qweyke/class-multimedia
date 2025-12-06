@@ -1,4 +1,5 @@
 from PySide6.QtWidgets import QMainWindow, QVBoxLayout
+import numpy as np
 from sympy import symbols, sympify, lambdify
 
 from log.custom_logger import logger
@@ -27,24 +28,25 @@ class MainApp(QMainWindow):
 
     def showEvent(self, event):
         super().showEvent(event)
-        screen = self.windowHandle().screen()
 
     def _plot_func(self):
-        x = symbols("x")
-        expr = sympify(self._main_ui.func_lineEdit.text())
-        func = lambdify(x, expr, modules=["math"])
+        self._renderer.add_function(lambda x: np.sin(x))
 
-        if self._main_ui.cones_checkBox.isChecked():
-            #     self._renderer.draw_function_cones3d(
-            #         func,
-            #         self._main_ui.from_spinBox.value(),
-            #         self._main_ui.to_spinBox.value(),
-            #         step=self._main_ui.step_spinBox.value(),
-            #     )
-            # else:
-            self._renderer.draw_function(
-                func,
-                self._main_ui.from_spinBox.value(),
-                self._main_ui.to_spinBox.value(),
-                self._main_ui.step_spinBox.value(),
-            )
+        # x = symbols("x")
+        # expr = sympify(self._main_ui.func_lineEdit.text())
+        # func = lambdify(x, expr, modules=["math"])
+
+        # if self._main_ui.cones_checkBox.isChecked():
+        #     #     self._renderer.draw_function_cones3d(
+        #     #         func,
+        #     #         self._main_ui.from_spinBox.value(),
+        #     #         self._main_ui.to_spinBox.value(),
+        #     #         step=self._main_ui.step_spinBox.value(),
+        #     #     )
+        #     # else:
+        #     self._renderer.draw_function(
+        #         func,
+        #         self._main_ui.from_spinBox.value(),
+        #         self._main_ui.to_spinBox.value(),
+        #         self._main_ui.step_spinBox.value(),
+        #     )
