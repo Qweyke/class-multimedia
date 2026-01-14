@@ -40,23 +40,9 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="center_btn">
-        <property name="text">
-         <string>Show center</string>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QPushButton" name="clear_btn">
         <property name="text">
          <string>Clear</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="grid_btn">
-        <property name="text">
-         <string>Build std grid</string>
         </property>
        </widget>
       </item>
@@ -140,22 +126,39 @@
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="dots_lbl">
+       <widget class="QLabel" name="func_points_lbl">
         <property name="text">
-         <string>Total dots</string>
+         <string>Function points</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QSpinBox" name="dots_spinBox">
+       <widget class="QSpinBox" name="func_points_spinBox">
         <property name="minimum">
          <number>10</number>
         </property>
         <property name="maximum">
-         <number>1000</number>
+         <number>10000</number>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="grid_step_lbl">
+        <property name="text">
+         <string>Grid step</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QDoubleSpinBox" name="grid_step_doubleSpinBox">
+        <property name="maximum">
+         <double>1.990000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.100000000000000</double>
         </property>
         <property name="value">
-         <number>100</number>
+         <double>1.000000000000000</double>
         </property>
        </widget>
       </item>

@@ -21,7 +21,7 @@ class MainWindow(QMainWindow):
 
         # Connect btns
         self._main_ui.plot_btn.clicked.connect(self._plot_func)
-        # self._main_ui.clear_btn.clicked.connect(self._renderer.clear_plotting_area)
+        self._main_ui.clear_btn.clicked.connect(self._renderer.clear)
         # self._main_ui.grid_btn.clicked.connect(self._renderer._create_axis_grid)
         # self._main_ui.center_btn.clicked.connect(self._renderer.draw_central_dot)
 
@@ -35,8 +35,19 @@ class MainWindow(QMainWindow):
         # expr = sympify(self._main_ui.func_lineEdit.text())
         # func = lambdify(x, expr, modules=["math"])
 
-        print("Func")
-        self._renderer.plot_func()
+        self._renderer.plot_func(
+            left_x=self._main_ui.from_spinBox.value(),
+            right_x=self._main_ui.to_spinBox.value(),
+            grid_step=self._main_ui.grid_step_doubleSpinBox.value(),
+            points=self._main_ui.func_points_spinBox.value(),
+        )
+
+        # self._renderer.plot_func_1(
+        #     self._main_ui.from_spinBox.value(),
+        #     self._main_ui.to_spinBox.value(),
+        #     self._main_ui.dots_spinBox.value(),
+        #     self._main_ui.grid_spinBox.value(),
+        # )
 
         # if self._main_ui.cones_checkBox.isChecked():
         #     self._renderer.draw_function_cones3d(
