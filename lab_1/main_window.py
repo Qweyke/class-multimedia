@@ -38,7 +38,7 @@ class MainWindow(QMainWindow):
         self._renderer.plot_func(
             left_x=self._main_ui.from_spinBox.value(),
             right_x=self._main_ui.to_spinBox.value(),
-            grid_step=self._main_ui.grid_step_doubleSpinBox.value(),
+            grid_step=self._main_ui.grid_x_doubleSpinBox.value(),
             points=self._main_ui.func_points_spinBox.value(),
         )
 

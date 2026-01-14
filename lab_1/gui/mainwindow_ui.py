@@ -110,21 +110,35 @@ class Ui_MainWindow(object):
         self.func_points_spinBox.setObjectName(u"func_points_spinBox")
         self.func_points_spinBox.setMinimum(10)
         self.func_points_spinBox.setMaximum(10000)
+        self.func_points_spinBox.setValue(100)
 
         self.verticalLayout.addWidget(self.func_points_spinBox)
 
-        self.grid_step_lbl = QLabel(self.centralwidget)
-        self.grid_step_lbl.setObjectName(u"grid_step_lbl")
+        self.grid_x_lbl = QLabel(self.centralwidget)
+        self.grid_x_lbl.setObjectName(u"grid_x_lbl")
 
-        self.verticalLayout.addWidget(self.grid_step_lbl)
+        self.verticalLayout.addWidget(self.grid_x_lbl)
 
-        self.grid_step_doubleSpinBox = QDoubleSpinBox(self.centralwidget)
-        self.grid_step_doubleSpinBox.setObjectName(u"grid_step_doubleSpinBox")
-        self.grid_step_doubleSpinBox.setMaximum(1.990000000000000)
-        self.grid_step_doubleSpinBox.setSingleStep(0.100000000000000)
-        self.grid_step_doubleSpinBox.setValue(1.000000000000000)
+        self.grid_x_doubleSpinBox = QDoubleSpinBox(self.centralwidget)
+        self.grid_x_doubleSpinBox.setObjectName(u"grid_x_doubleSpinBox")
+        self.grid_x_doubleSpinBox.setMinimum(1.000000000000000)
+        self.grid_x_doubleSpinBox.setMaximum(100.000000000000000)
+        self.grid_x_doubleSpinBox.setSingleStep(0.100000000000000)
+        self.grid_x_doubleSpinBox.setValue(1.000000000000000)
 
-        self.verticalLayout.addWidget(self.grid_step_doubleSpinBox)
+        self.verticalLayout.addWidget(self.grid_x_doubleSpinBox)
+
+        self.grid_y_lbl = QLabel(self.centralwidget)
+        self.grid_y_lbl.setObjectName(u"grid_y_lbl")
+
+        self.verticalLayout.addWidget(self.grid_y_lbl)
+
+        self.grid_y_doubleSpinBox = QDoubleSpinBox(self.centralwidget)
+        self.grid_y_doubleSpinBox.setObjectName(u"grid_y_doubleSpinBox")
+        self.grid_y_doubleSpinBox.setMinimum(1.000000000000000)
+        self.grid_y_doubleSpinBox.setMaximum(100.000000000000000)
+
+        self.verticalLayout.addWidget(self.grid_y_doubleSpinBox)
 
 
         self.horizontalLayout.addLayout(self.verticalLayout)
@@ -157,6 +171,7 @@ class Ui_MainWindow(object):
         self.from_lbl.setText(QCoreApplication.translate("MainWindow", u"From", None))
         self.to_lbl.setText(QCoreApplication.translate("MainWindow", u"To", None))
         self.func_points_lbl.setText(QCoreApplication.translate("MainWindow", u"Function points", None))
-        self.grid_step_lbl.setText(QCoreApplication.translate("MainWindow", u"Grid step", None))
+        self.grid_x_lbl.setText(QCoreApplication.translate("MainWindow", u"Grid step x", None))
+        self.grid_y_lbl.setText(QCoreApplication.translate("MainWindow", u"Grid step y", None))
     # retranslateUi
 
