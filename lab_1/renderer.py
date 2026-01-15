@@ -1,7 +1,7 @@
 import math
 from PIL.ImageQt import QPixmap
-from PySide6.QtCore import QRect, QPointF, QPoint, QSize, QRectF
-from PySide6.QtGui import QPainter, QPen, Qt, QColor
+from PySide6.QtCore import QRect, QPointF, QRectF
+from PySide6.QtGui import QPainter, QPen, Qt, QColor, QLinearGradient, QPolygonF
 from PySide6.QtWidgets import QWidget
 import numpy as np
 import sympy as sp
@@ -52,8 +52,13 @@ class CoordinateSystem:
         self.x_min = math.floor(x_min_raw / self.grid_step_x) * self.grid_step_x
         self.x_max = math.ceil(x_max_raw / self.grid_step_x) * self.grid_step_x
 
-        self.y_min = math.floor(y_min_raw / self.grid_step_y) * self.grid_step_y
-        self.y_max = math.ceil(y_max_raw / self.grid_step_y) * self.grid_step_y
+        margin_y = self.grid_step_y * 0.05
+        self.y_min = (
+            math.floor((y_min_raw - margin_y) / self.grid_step_y) * self.grid_step_y
+        )
+        self.y_max = (
+            math.ceil((y_max_raw + margin_y) / self.grid_step_y) * self.grid_step_y
+        )
 
         if self.y_min == self.y_max:
             self.y_min -= self.grid_step_y
@@ -249,15 +254,68 @@ class Renderer(QWidget):
                 rect.left() + line_width + padding * 2, y_pos + 5, plot["name"]
             )
 
+    def _draw_pseudo_cones(self, painter: QPainter, x_vals, y_vals, base_color):
+        if len(x_vals) < 2:
+            return
+
+        # Calculate cone width
+        p1 = self._coord_sys.math_to_pixels(QPointF(x_vals[0], 0))
+        p2 = self._coord_sys.math_to_pixels(QPointF(x_vals[1], 0))
+        cone_width = abs(p2.x() - p1.x()) * 0.8
+
+        y_zero_px = self._coord_sys.math_to_pixels(QPointF(0, 0)).y()
+
+        for x, y in zip(x_vals, y_vals):
+            if abs(y) < 1e-6:
+                continue
+
+            # Calculate peaks
+            tip_px = self._coord_sys.math_to_pixels(QPointF(x, y))
+            base_center_px = self._coord_sys.math_to_pixels(QPointF(x, 0))
+
+            left_x = base_center_px.x() - cone_width / 2
+            right_x = base_center_px.x() + cone_width / 2
+
+            # Gradient
+            grad = QLinearGradient(left_x, 0, right_x, 0)
+            grad.setColorAt(0.0, base_color.lighter(150))
+            grad.setColorAt(0.3, base_color)
+            grad.setColorAt(1.0, base_color.darker(150))
+            painter.setPen(Qt.NoPen)
+            painter.setBrush(grad)
+
+            # Cone's body
+            cone_poly = QPolygonF(
+                [
+                    tip_px,  # Top peak
+                    QPointF(left_x, y_zero_px),  # Left angle
+                    QPointF(right_x, y_zero_px),  # Right angle
+                ]
+            )
+            painter.drawPolygon(cone_poly)
+
+            # Draw base with darker color
+            ellipse_h = cone_width * 0.3
+            ellipse_rect = QRectF(
+                left_x, y_zero_px - ellipse_h / 2, cone_width, ellipse_h
+            )
+            painter.setBrush(base_color.darker(180))
+            painter.drawEllipse(ellipse_rect)
+
     def plot_func(
         self,
         func_name: str,
         left_x: float,
         right_x: float,
         points: int,
-        color=Qt.red,
+        color,
         style=Qt.SolidLine,
+        use_cones=True,
     ):
+        # Clear previous
+        self.clear()
+
+        # Parse function
         x = sp.symbols("x")
         expr = sp.parse_expr(func_name)
         f_lambda = sp.lambdify(x, expr, "numpy")
@@ -265,38 +323,41 @@ class Renderer(QWidget):
         x_vals = np.linspace(left_x, right_x, points + 1)
         y_vals = f_lambda(x_vals)
 
-        data_range_x = right_x - left_x
-        data_range_y = y_vals.max() - y_vals.min()
-        if data_range_y == 0:
-            data_range_y = 1.0
-
-        padding_x = data_range_x * 0
-        padding_y = data_range_y * 0.005
-
         self._coord_sys.set_bounds(
-            x_min_raw=left_x - padding_x,
-            x_max_raw=right_x + padding_x,
-            y_min_raw=y_vals.min() - padding_y,
-            y_max_raw=y_vals.max() + padding_y,
+            x_min_raw=left_x,
+            x_max_raw=right_x,
+            y_min_raw=y_vals.min(),
+            y_max_raw=y_vals.max(),
         )
-
-        self.current_plots.append({"name": func_name, "color": color, "style": style})
 
         self._build_axis_grid()
 
-        pixel_points = [
-            self._coord_sys.math_to_pixels(QPointF(x, y))
-            for x, y in zip(x_vals, y_vals)
-        ]
-
+        # Start drawing
         painter = QPainter(self._cached_pixmap)
         painter.setViewport(self._coord_sys.viewport)
+        painter.setClipRect(self._coord_sys.viewport)
         painter.setRenderHint(QPainter.Antialiasing)
-        painter.setPen(QPen(Qt.red, 1, Qt.SolidLine))
 
-        for i in range(len(pixel_points) - 1):
-            painter.drawLine(pixel_points[i], pixel_points[i + 1])
+        if use_cones:
+            self._draw_pseudo_cones(painter, x_vals, y_vals, color)
 
+        else:
+            painter.setPen(QPen(color, 2))
+            pixel_points = [
+                self._coord_sys.math_to_pixels(QPointF(x, y))
+                for x, y in zip(x_vals, y_vals)
+            ]
+            for i in range(len(pixel_points) - 1):
+                painter.drawLine(pixel_points[i], pixel_points[i + 1])
+
+            pixel_points = [
+                self._coord_sys.math_to_pixels(QPointF(x, y))
+                for x, y in zip(x_vals, y_vals)
+            ]
+
+        # Draw legend
+        self.current_plots.append({"name": func_name, "color": color, "style": style})
         self._draw_legend(painter)
+
         painter.end()
         self.update()

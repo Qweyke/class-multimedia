@@ -29,6 +29,8 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(MainWindow.sizePolicy().hasHeightForWidth())
         MainWindow.setSizePolicy(sizePolicy)
+        icon = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.ListAdd))
+        MainWindow.setWindowIcon(icon)
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         sizePolicy.setHeightForWidth(self.centralwidget.sizePolicy().hasHeightForWidth())
@@ -53,6 +55,11 @@ class Ui_MainWindow(object):
         self.cones_checkBox.setChecked(True)
 
         self.verticalLayout.addWidget(self.cones_checkBox)
+
+        self.color_btn = QPushButton(self.centralwidget)
+        self.color_btn.setObjectName(u"color_btn")
+
+        self.verticalLayout.addWidget(self.color_btn)
 
         self.func_lbl = QLabel(self.centralwidget)
         self.func_lbl.setObjectName(u"func_lbl")
@@ -113,11 +120,6 @@ class Ui_MainWindow(object):
 
         self.verticalLayout.addWidget(self.func_points_spinBox)
 
-        self.grid_x_lbl = QLabel(self.centralwidget)
-        self.grid_x_lbl.setObjectName(u"grid_x_lbl")
-
-        self.verticalLayout.addWidget(self.grid_x_lbl)
-
 
         self.horizontalLayout.addLayout(self.verticalLayout)
 
@@ -137,18 +139,18 @@ class Ui_MainWindow(object):
     # setupUi
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
+        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"QweykePlotter", None))
 #if QT_CONFIG(whatsthis)
         self.plot_btn.setWhatsThis(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Press to plot chosen function</p></body></html>", None))
 #endif // QT_CONFIG(whatsthis)
         self.plot_btn.setText(QCoreApplication.translate("MainWindow", u"Plot", None))
         self.clear_btn.setText(QCoreApplication.translate("MainWindow", u"Clear", None))
         self.cones_checkBox.setText(QCoreApplication.translate("MainWindow", u"3D Cones", None))
+        self.color_btn.setText(QCoreApplication.translate("MainWindow", u"Choose color", None))
         self.func_lbl.setText(QCoreApplication.translate("MainWindow", u"Function ", None))
         self.func_lineEdit.setText(QCoreApplication.translate("MainWindow", u"cos(x)", None))
         self.from_lbl.setText(QCoreApplication.translate("MainWindow", u"From", None))
         self.to_lbl.setText(QCoreApplication.translate("MainWindow", u"To", None))
         self.func_points_lbl.setText(QCoreApplication.translate("MainWindow", u"Function points", None))
-        self.grid_x_lbl.setText(QCoreApplication.translate("MainWindow", u"Grid step (x,y):  ", None))
     # retranslateUi
 

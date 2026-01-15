@@ -17,7 +17,10 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>QweykePlotter</string>
+  </property>
+  <property name="windowIcon">
+   <iconset theme="QIcon::ThemeIcon::ListAdd"/>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="sizePolicy">
@@ -56,6 +59,13 @@
         </property>
         <property name="checked">
          <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="color_btn">
+        <property name="text">
+         <string>Choose color</string>
         </property>
        </widget>
       </item>
@@ -142,13 +152,6 @@
         </property>
         <property name="value">
          <number>100</number>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="grid_x_lbl">
-        <property name="text">
-         <string>Grid step (x,y):  </string>
         </property>
        </widget>
       </item>
