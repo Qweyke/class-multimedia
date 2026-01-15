@@ -266,7 +266,7 @@ class Renderer(QWidget):
         y_zero_px = self._coord_sys.math_to_pixels(QPointF(0, 0)).y()
 
         for x, y in zip(x_vals, y_vals):
-            if abs(y) < 1e-6:
+            if not np.isfinite(y) or abs(y) < 1e-6:
                 continue
 
             # Calculate peaks
@@ -302,7 +302,7 @@ class Renderer(QWidget):
             painter.setBrush(base_color.darker(180))
             painter.drawEllipse(ellipse_rect)
 
-    def plot_func(
+    def plot_func_1(
         self,
         func_name: str,
         left_x: float,
@@ -321,13 +321,20 @@ class Renderer(QWidget):
         f_lambda = sp.lambdify(x, expr, "numpy")
 
         x_vals = np.linspace(left_x, right_x, points + 1)
-        y_vals = f_lambda(x_vals)
+        y_vals = np.array(f_lambda(x_vals), dtype=float)
+        finite_y = y_vals[np.isfinite(y_vals)]
+
+        if finite_y.size == 0:
+            return
+
+        y_min_data = finite_y.min()
+        y_max_data = finite_y.max()
 
         self._coord_sys.set_bounds(
             x_min_raw=left_x,
             x_max_raw=right_x,
-            y_min_raw=y_vals.min(),
-            y_max_raw=y_vals.max(),
+            y_min_raw=y_min_data,
+            y_max_raw=y_max_data,
         )
 
         self._build_axis_grid()
@@ -361,3 +368,95 @@ class Renderer(QWidget):
 
         painter.end()
         self.update()
+
+    def plot_func(
+        self,
+        func_name: str,
+        left_x: float,
+        right_x: float,
+        points: int,
+        color,
+        style=Qt.SolidLine,
+        use_cones=True,
+    ):
+        self.clear()
+
+        try:
+            # Parse function
+            x = sp.symbols("x")
+            expr = sp.parse_expr(func_name.replace("^", "**"))
+            f_lambda = sp.lambdify(x, expr, "numpy")
+
+            # Resolve breaking-vals
+            with np.errstate(divide="ignore", invalid="ignore"):
+                x_vals = np.linspace(left_x, right_x, points + 1)
+                y_raw = f_lambda(x_vals)
+                y_vals = np.array(y_raw, dtype=float)
+
+            finite_mask = np.isfinite(y_vals)
+            finite_y = y_vals[finite_mask]
+
+            if finite_y.size == 0:
+                return
+
+            # Determine left-right sides
+            y_min_data = finite_y.min()
+            y_max_data = finite_y.max()
+
+            # Trim asymptotes
+            y_range = y_max_data - y_min_data
+            if y_range > 1000:
+                y_min_data = max(y_min_data, -500)
+                y_max_data = min(y_max_data, 500)
+
+            # Set trimmed bounds
+            self._coord_sys.set_bounds(
+                x_min_raw=left_x,
+                x_max_raw=right_x,
+                y_min_raw=y_min_data,
+                y_max_raw=y_max_data,
+            )
+
+            # Build adjusted grid
+            self._build_axis_grid()
+
+            # Prepare for plotting
+            painter = QPainter(self._cached_pixmap)
+            painter.setViewport(self._coord_sys.viewport)
+            painter.setRenderHint(QPainter.Antialiasing)
+            painter.setClipRect(self._coord_sys.viewport)
+
+            # Plotting cycle
+            if use_cones:
+                self._draw_pseudo_cones(painter, x_vals, y_vals, color)
+            else:
+                painter.setPen(QPen(color, 2, style))
+                last_point = None
+
+                for i in range(len(x_vals)):
+                    if finite_mask[i]:
+                        curr_point = self._coord_sys.math_to_pixels(
+                            QPointF(x_vals[i], y_vals[i])
+                        )
+                        if last_point is not None:
+                            if (
+                                abs(y_vals[i] - y_vals[i - 1])
+                                < (y_max_data - y_min_data) * 2
+                            ):
+                                painter.drawLine(last_point, curr_point)
+                        last_point = curr_point
+                    else:
+                        last_point = None
+
+            # Draw legend
+            self.current_plots.append(
+                {"name": func_name, "color": color, "style": style}
+            )
+            self._draw_legend(painter)
+
+            # Release and paint
+            painter.end()
+            self.update()
+
+        except Exception as e:
+            print(f"Plot error: {e}")
