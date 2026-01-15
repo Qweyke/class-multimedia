@@ -15,10 +15,9 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QCheckBox, QDoubleSpinBox, QFrame,
-    QHBoxLayout, QLabel, QLineEdit, QMainWindow,
-    QPushButton, QSizePolicy, QSpinBox, QVBoxLayout,
-    QWidget)
+from PySide6.QtWidgets import (QApplication, QCheckBox, QFrame, QHBoxLayout,
+    QLabel, QLineEdit, QMainWindow, QPushButton,
+    QSizePolicy, QSpinBox, QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -119,27 +118,6 @@ class Ui_MainWindow(object):
 
         self.verticalLayout.addWidget(self.grid_x_lbl)
 
-        self.grid_x_doubleSpinBox = QDoubleSpinBox(self.centralwidget)
-        self.grid_x_doubleSpinBox.setObjectName(u"grid_x_doubleSpinBox")
-        self.grid_x_doubleSpinBox.setMinimum(1.000000000000000)
-        self.grid_x_doubleSpinBox.setMaximum(100.000000000000000)
-        self.grid_x_doubleSpinBox.setSingleStep(0.100000000000000)
-        self.grid_x_doubleSpinBox.setValue(1.000000000000000)
-
-        self.verticalLayout.addWidget(self.grid_x_doubleSpinBox)
-
-        self.grid_y_lbl = QLabel(self.centralwidget)
-        self.grid_y_lbl.setObjectName(u"grid_y_lbl")
-
-        self.verticalLayout.addWidget(self.grid_y_lbl)
-
-        self.grid_y_doubleSpinBox = QDoubleSpinBox(self.centralwidget)
-        self.grid_y_doubleSpinBox.setObjectName(u"grid_y_doubleSpinBox")
-        self.grid_y_doubleSpinBox.setMinimum(1.000000000000000)
-        self.grid_y_doubleSpinBox.setMaximum(100.000000000000000)
-
-        self.verticalLayout.addWidget(self.grid_y_doubleSpinBox)
-
 
         self.horizontalLayout.addLayout(self.verticalLayout)
 
@@ -171,7 +149,6 @@ class Ui_MainWindow(object):
         self.from_lbl.setText(QCoreApplication.translate("MainWindow", u"From", None))
         self.to_lbl.setText(QCoreApplication.translate("MainWindow", u"To", None))
         self.func_points_lbl.setText(QCoreApplication.translate("MainWindow", u"Function points", None))
-        self.grid_x_lbl.setText(QCoreApplication.translate("MainWindow", u"Grid step x", None))
-        self.grid_y_lbl.setText(QCoreApplication.translate("MainWindow", u"Grid step y", None))
+        self.grid_x_lbl.setText(QCoreApplication.translate("MainWindow", u"Grid step (x,y):  ", None))
     # retranslateUi
 

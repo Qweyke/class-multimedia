@@ -1,4 +1,5 @@
 from PySide6.QtWidgets import QMainWindow, QVBoxLayout
+import numpy as np
 from sympy import symbols, sympify, lambdify
 
 from log.custom_logger import logger
@@ -31,14 +32,10 @@ class MainWindow(QMainWindow):
         dpi = screen.logicalDotsPerInch()
 
     def _plot_func(self):
-        # x = symbols("x")
-        # expr = sympify(self._main_ui.func_lineEdit.text())
-        # func = lambdify(x, expr, modules=["math"])
-
         self._renderer.plot_func(
+            func_name=self._main_ui.func_lineEdit.text(),
             left_x=self._main_ui.from_spinBox.value(),
             right_x=self._main_ui.to_spinBox.value(),
-            grid_step=self._main_ui.grid_x_doubleSpinBox.value(),
             points=self._main_ui.func_points_spinBox.value(),
         )
 

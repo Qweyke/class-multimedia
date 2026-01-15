@@ -148,40 +148,7 @@
       <item>
        <widget class="QLabel" name="grid_x_lbl">
         <property name="text">
-         <string>Grid step x</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QDoubleSpinBox" name="grid_x_doubleSpinBox">
-        <property name="minimum">
-         <double>1.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>100.000000000000000</double>
-        </property>
-        <property name="singleStep">
-         <double>0.100000000000000</double>
-        </property>
-        <property name="value">
-         <double>1.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="grid_y_lbl">
-        <property name="text">
-         <string>Grid step y</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QDoubleSpinBox" name="grid_y_doubleSpinBox">
-        <property name="minimum">
-         <double>1.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>100.000000000000000</double>
+         <string>Grid step (x,y):  </string>
         </property>
        </widget>
       </item>

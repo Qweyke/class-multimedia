@@ -4,6 +4,7 @@ from PySide6.QtCore import QRect, QPointF, QPoint, QSize, QRectF
 from PySide6.QtGui import QPainter, QPen, Qt, QColor
 from PySide6.QtWidgets import QWidget
 import numpy as np
+import sympy as sp
 
 
 class CoordinateSystem:
@@ -77,10 +78,12 @@ class Renderer(QWidget):
         self._cached_pixmap = QPixmap()
         self._coord_sys = CoordinateSystem(x_min=-10, x_max=10, y_min=-10, y_max=10)
 
+        self.current_plots = []
+
     def resizeEvent(self, event):
         # Define plotting area inside pixmap
-        margin_x = int(self.width() * 0.05)
-        margin_y = int(self.height() * 0.05)
+        margin_x = int(self.width() * 0.02)
+        margin_y = int(self.height() * 0.02)
         plot_rect = self.contentsRect().adjusted(
             margin_x, margin_y, -margin_x, -margin_y
         )
@@ -95,6 +98,7 @@ class Renderer(QWidget):
         painter.drawPixmap(QPointF(0, 0), self._cached_pixmap)
 
     def clear(self):
+        self.current_plots = []
         self.resizeEvent(None)
 
     def _build_axis_grid(self):
@@ -145,7 +149,7 @@ class Renderer(QWidget):
             painter.drawText(
                 label_rect,
                 Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop,
-                f"{current_x:.3f}",
+                f"{current_x:.2f}",
             )
 
         # Draw horizontal grid lines
@@ -178,11 +182,11 @@ class Renderer(QWidget):
             painter.drawText(
                 label_rect,
                 Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight,
-                f"{current_y:.3f}",
+                f"{current_y:.2f}",
             )
 
         # Zero lines
-        zero_pen = QPen(Qt.black, 1, Qt.SolidLine)
+        zero_pen = QPen(Qt.black, 1.5, Qt.SolidLine)
         painter.setPen(zero_pen)
         if self._coord_sys.x_min <= 0 <= self._coord_sys.x_max:
             top_zero = self._coord_sys.math_to_pixels(QPointF(0, self._coord_sys.y_max))
@@ -201,11 +205,65 @@ class Renderer(QWidget):
         # Release painter
         painter.end()
 
-    def plot_func(self, left_x: float, right_x: float, points: int, grid_step: float):
-        # self._coord_sys.grid_step = grid_step
+    def _draw_legend(self, painter: QPainter):
+        if not self.current_plots:
+            return
+
+        font = painter.font()
+        font.setPointSize(10)
+        painter.setFont(font)
+
+        padding = 10
+        line_width = 30
+        row_height = 25
+
+        max_text_width = 0
+        for plot in self.current_plots:
+            width = painter.fontMetrics().horizontalAdvance(plot["name"])
+            max_text_width = max(max_text_width, width)
+
+        legend_width = max_text_width + line_width + padding * 3
+        legend_height = len(self.current_plots) * row_height + padding
+
+        rect = QRect(
+            self._coord_sys.viewport.right() - legend_width - 10,
+            self._coord_sys.viewport.top() + 10,
+            legend_width,
+            legend_height,
+        )
+
+        painter.setPen(QPen(Qt.black, 1))
+        painter.setBrush(QColor(255, 255, 255, 200))
+        painter.drawRect(rect)
+
+        for i, plot in enumerate(self.current_plots):
+            y_pos = rect.top() + padding + i * row_height + row_height // 2
+
+            painter.setPen(QPen(plot["color"], 2, plot["style"]))
+            painter.drawLine(
+                rect.left() + padding, y_pos, rect.left() + padding + line_width, y_pos
+            )
+
+            painter.setPen(Qt.black)
+            painter.drawText(
+                rect.left() + line_width + padding * 2, y_pos + 5, plot["name"]
+            )
+
+    def plot_func(
+        self,
+        func_name: str,
+        left_x: float,
+        right_x: float,
+        points: int,
+        color=Qt.red,
+        style=Qt.SolidLine,
+    ):
+        x = sp.symbols("x")
+        expr = sp.parse_expr(func_name)
+        f_lambda = sp.lambdify(x, expr, "numpy")
 
         x_vals = np.linspace(left_x, right_x, points + 1)
-        y_vals = np.cos(x_vals)
+        y_vals = f_lambda(x_vals)
 
         data_range_x = right_x - left_x
         data_range_y = y_vals.max() - y_vals.min()
@@ -222,6 +280,8 @@ class Renderer(QWidget):
             y_max_raw=y_vals.max() + padding_y,
         )
 
+        self.current_plots.append({"name": func_name, "color": color, "style": style})
+
         self._build_axis_grid()
 
         pixel_points = [
@@ -237,5 +297,6 @@ class Renderer(QWidget):
         for i in range(len(pixel_points) - 1):
             painter.drawLine(pixel_points[i], pixel_points[i + 1])
 
+        self._draw_legend(painter)
         painter.end()
         self.update()
