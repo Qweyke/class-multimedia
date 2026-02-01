@@ -90,6 +90,13 @@
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="add_btn">
+        <property name="text">
+         <string>Add function</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QLabel" name="from_lbl">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
@@ -103,15 +110,15 @@
        </widget>
       </item>
       <item>
-       <widget class="QSpinBox" name="from_spinBox">
+       <widget class="QDoubleSpinBox" name="from_doubleSpinBox">
         <property name="minimum">
-         <number>-999999999</number>
+         <double>-9999.989999999999782</double>
         </property>
         <property name="maximum">
-         <number>999999999</number>
+         <double>9999.989999999999782</double>
         </property>
         <property name="value">
-         <number>-10</number>
+         <double>-10.000000000000000</double>
         </property>
        </widget>
       </item>
@@ -123,15 +130,15 @@
        </widget>
       </item>
       <item>
-       <widget class="QSpinBox" name="to_spinBox">
+       <widget class="QDoubleSpinBox" name="to_doubleSpinBox">
         <property name="minimum">
-         <number>-999999999</number>
+         <double>-9999.989999999999782</double>
         </property>
         <property name="maximum">
-         <number>999999999</number>
+         <double>9999.989999999999782</double>
         </property>
         <property name="value">
-         <number>10</number>
+         <double>10.000000000000000</double>
         </property>
        </widget>
       </item>

@@ -38,8 +38,8 @@ class MainWindow(QMainWindow):
     def _plot_func(self):
         self._renderer.plot_func(
             func_name=self._main_ui.func_lineEdit.text(),
-            left_x=self._main_ui.from_spinBox.value(),
-            right_x=self._main_ui.to_spinBox.value(),
+            left_x=self._main_ui.from_doubleSpinBox.value(),
+            right_x=self._main_ui.to_doubleSpinBox.value(),
             points=self._main_ui.func_points_spinBox.value(),
             color=self.current_color,
             use_cones=self._main_ui.cones_checkBox.isChecked(),

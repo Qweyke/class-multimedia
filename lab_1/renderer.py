@@ -26,8 +26,10 @@ class CoordinateSystem:
     def _calculate_nice_grid_step(self, axis_range):
         if axis_range <= 0:
             return 0.1
+
         target_ticks = 20
         raw_step = axis_range / target_ticks
+
         magnitude = 10 ** math.floor(math.log10(raw_step))
         residual = raw_step / magnitude
 
@@ -39,6 +41,8 @@ class CoordinateSystem:
             step = 5.0 * magnitude
         else:
             step = 10.0 * magnitude
+
+        print(f"Step {step}")
         return step
 
     def set_viewport(self, rect: QRect):
@@ -145,11 +149,11 @@ class Renderer(QWidget):
             # Labels
             painter.setPen(frame_pen)
             label_rect = QRectF(
-                bot_point.x()
+                left=bot_point.x()
                 - (self._coord_sys.px_for_x * self._coord_sys.grid_step_x) / 2,
-                bot_point.y(),
-                self._coord_sys.px_for_x * self._coord_sys.grid_step_x,
-                self._coord_sys.px_for_y,
+                top=bot_point.y(),
+                width=self._coord_sys.px_for_x * self._coord_sys.grid_step_x,
+                heitgh=self._coord_sys.px_for_y,
             )
             painter.drawText(
                 label_rect,
@@ -301,73 +305,6 @@ class Renderer(QWidget):
             )
             painter.setBrush(base_color.darker(180))
             painter.drawEllipse(ellipse_rect)
-
-    def plot_func_1(
-        self,
-        func_name: str,
-        left_x: float,
-        right_x: float,
-        points: int,
-        color,
-        style=Qt.SolidLine,
-        use_cones=True,
-    ):
-        # Clear previous
-        self.clear()
-
-        # Parse function
-        x = sp.symbols("x")
-        expr = sp.parse_expr(func_name)
-        f_lambda = sp.lambdify(x, expr, "numpy")
-
-        x_vals = np.linspace(left_x, right_x, points + 1)
-        y_vals = np.array(f_lambda(x_vals), dtype=float)
-        finite_y = y_vals[np.isfinite(y_vals)]
-
-        if finite_y.size == 0:
-            return
-
-        y_min_data = finite_y.min()
-        y_max_data = finite_y.max()
-
-        self._coord_sys.set_bounds(
-            x_min_raw=left_x,
-            x_max_raw=right_x,
-            y_min_raw=y_min_data,
-            y_max_raw=y_max_data,
-        )
-
-        self._build_axis_grid()
-
-        # Start drawing
-        painter = QPainter(self._cached_pixmap)
-        painter.setViewport(self._coord_sys.viewport)
-        painter.setClipRect(self._coord_sys.viewport)
-        painter.setRenderHint(QPainter.Antialiasing)
-
-        if use_cones:
-            self._draw_pseudo_cones(painter, x_vals, y_vals, color)
-
-        else:
-            painter.setPen(QPen(color, 2))
-            pixel_points = [
-                self._coord_sys.math_to_pixels(QPointF(x, y))
-                for x, y in zip(x_vals, y_vals)
-            ]
-            for i in range(len(pixel_points) - 1):
-                painter.drawLine(pixel_points[i], pixel_points[i + 1])
-
-            pixel_points = [
-                self._coord_sys.math_to_pixels(QPointF(x, y))
-                for x, y in zip(x_vals, y_vals)
-            ]
-
-        # Draw legend
-        self.current_plots.append({"name": func_name, "color": color, "style": style})
-        self._draw_legend(painter)
-
-        painter.end()
-        self.update()
 
     def plot_func(
         self,

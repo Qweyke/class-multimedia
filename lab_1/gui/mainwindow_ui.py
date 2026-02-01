@@ -15,9 +15,10 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QCheckBox, QFrame, QHBoxLayout,
-    QLabel, QLineEdit, QMainWindow, QPushButton,
-    QSizePolicy, QSpinBox, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QApplication, QCheckBox, QDoubleSpinBox, QFrame,
+    QHBoxLayout, QLabel, QLineEdit, QMainWindow,
+    QPushButton, QSizePolicy, QSpinBox, QVBoxLayout,
+    QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -76,6 +77,11 @@ class Ui_MainWindow(object):
 
         self.verticalLayout.addWidget(self.func_lineEdit)
 
+        self.add_btn = QPushButton(self.centralwidget)
+        self.add_btn.setObjectName(u"add_btn")
+
+        self.verticalLayout.addWidget(self.add_btn)
+
         self.from_lbl = QLabel(self.centralwidget)
         self.from_lbl.setObjectName(u"from_lbl")
         sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
@@ -86,26 +92,26 @@ class Ui_MainWindow(object):
 
         self.verticalLayout.addWidget(self.from_lbl)
 
-        self.from_spinBox = QSpinBox(self.centralwidget)
-        self.from_spinBox.setObjectName(u"from_spinBox")
-        self.from_spinBox.setMinimum(-999999999)
-        self.from_spinBox.setMaximum(999999999)
-        self.from_spinBox.setValue(-10)
+        self.from_doubleSpinBox = QDoubleSpinBox(self.centralwidget)
+        self.from_doubleSpinBox.setObjectName(u"from_doubleSpinBox")
+        self.from_doubleSpinBox.setMinimum(-9999.989999999999782)
+        self.from_doubleSpinBox.setMaximum(9999.989999999999782)
+        self.from_doubleSpinBox.setValue(-10.000000000000000)
 
-        self.verticalLayout.addWidget(self.from_spinBox)
+        self.verticalLayout.addWidget(self.from_doubleSpinBox)
 
         self.to_lbl = QLabel(self.centralwidget)
         self.to_lbl.setObjectName(u"to_lbl")
 
         self.verticalLayout.addWidget(self.to_lbl)
 
-        self.to_spinBox = QSpinBox(self.centralwidget)
-        self.to_spinBox.setObjectName(u"to_spinBox")
-        self.to_spinBox.setMinimum(-999999999)
-        self.to_spinBox.setMaximum(999999999)
-        self.to_spinBox.setValue(10)
+        self.to_doubleSpinBox = QDoubleSpinBox(self.centralwidget)
+        self.to_doubleSpinBox.setObjectName(u"to_doubleSpinBox")
+        self.to_doubleSpinBox.setMinimum(-9999.989999999999782)
+        self.to_doubleSpinBox.setMaximum(9999.989999999999782)
+        self.to_doubleSpinBox.setValue(10.000000000000000)
 
-        self.verticalLayout.addWidget(self.to_spinBox)
+        self.verticalLayout.addWidget(self.to_doubleSpinBox)
 
         self.func_points_lbl = QLabel(self.centralwidget)
         self.func_points_lbl.setObjectName(u"func_points_lbl")
@@ -149,6 +155,7 @@ class Ui_MainWindow(object):
         self.color_btn.setText(QCoreApplication.translate("MainWindow", u"Choose color", None))
         self.func_lbl.setText(QCoreApplication.translate("MainWindow", u"Function ", None))
         self.func_lineEdit.setText(QCoreApplication.translate("MainWindow", u"cos(x)", None))
+        self.add_btn.setText(QCoreApplication.translate("MainWindow", u"Add function", None))
         self.from_lbl.setText(QCoreApplication.translate("MainWindow", u"From", None))
         self.to_lbl.setText(QCoreApplication.translate("MainWindow", u"To", None))
         self.func_points_lbl.setText(QCoreApplication.translate("MainWindow", u"Function points", None))
