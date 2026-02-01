@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QMainWindow, QVBoxLayout, QColorDialog
 from PySide6.QtGui import QColor
-from renderer import Renderer
+from plot_core.renderer import Renderer
 from gui.mainwindow_ui import Ui_MainWindow
 
 
