@@ -14,6 +14,43 @@ class CoordinateMapper:
         self.px_for_x = self.viewport.width() / dx
         self.px_for_y = self.viewport.height() / dy
 
+        self.x_step, self.y_step = self._calculate_optimal_steps_xy(dx, dy)
+        print(
+            f"X step {self.x_step}, px for x {self.px_for_x}; Y step {self.y_step}, px for y {self.px_for_y}"
+        )
+
+    def _calculate_optimal_steps_xy(self, dx, dy):
+        def beautify_step_number(raw_step):
+            if raw_step == 0:
+                return 1
+            magnitude = 10 ** math.floor(math.log10(raw_step))
+            res = raw_step / magnitude
+            if res < 1.5:
+                res = 1
+            elif res < 3:
+                res = 2
+            elif res < 7:
+                res = 5
+            else:
+                res = 10
+            return res * magnitude
+
+        # Preferred axis-label size
+        width_per_label_px = 100
+        height_per_label_px = 50
+
+        # Calculate labels quantity that fit current screen
+        x_labels_cnt = max(1, self.viewport.width() // width_per_label_px)
+        y_labels_cnt = max(1, self.viewport.height() // height_per_label_px)
+
+        x_raw_step = dx / x_labels_cnt
+        y_raw_step = dy / y_labels_cnt
+
+        x_nice_step = beautify_step_number(x_raw_step)
+        y_nice_step = beautify_step_number(y_raw_step)
+
+        return x_nice_step, y_nice_step
+
     def math_to_pixels(self, point: QPointF) -> QPointF:
         x_px = self.viewport.left() + (point.x() - self.x_min) * self.px_for_x
         y_px = self.viewport.bottom() - (point.y() - self.y_min) * self.px_for_y
@@ -23,33 +60,6 @@ class CoordinateMapper:
         x_math = self.x_min + (point.x() - self.viewport.left()) / self.px_for_x
         y_math = self.y_min + (self.viewport.bottom() - point.y()) / self.px_for_y
         return QPointF(x_math, y_math)
-
-    def _to_nice_number(self, raw_step):
-        if raw_step == 0:
-            return 1
-        magnitude = 10 ** math.floor(math.log10(raw_step))
-        res = raw_step / magnitude
-        if res < 1.5:
-            res = 1
-        elif res < 3:
-            res = 2
-        elif res < 7:
-            res = 5
-        else:
-            res = 10
-        return res * magnitude
-
-    def calculate_optimal_step(self):
-        min_pixels_per_label = 100
-
-        max_x_labels_сnt = max(1, self.viewport.width() // min_pixels_per_label)
-
-        math_range = self.x_max - self.x_min
-        raw_step = math_range / max_x_labels_сnt
-
-        nice_step = self._to_nice_number(raw_step)
-
-        return nice_step
 
     """Dump"""
 

@@ -23,7 +23,7 @@ class MainWindow(QMainWindow):
         )
 
         # Connect btns
-        self._main_ui.plot_btn.clicked.connect(self._plot_func)
+        # self._main_ui.plot_btn.clicked.connect(self._plot_func)
         self._main_ui.clear_btn.clicked.connect(self._renderer.clear)
         self._main_ui.color_btn.clicked.connect(self._pick_color)
 
@@ -35,12 +35,12 @@ class MainWindow(QMainWindow):
             self._main_ui.color_btn.setStyleSheet(f"background-color: {color.name()};")
             self._plot_func()
 
-    def _plot_func(self):
-        self._renderer.plot_func(
-            func_name=self._main_ui.func_lineEdit.text(),
-            left_x=self._main_ui.from_doubleSpinBox.value(),
-            right_x=self._main_ui.to_doubleSpinBox.value(),
-            points=self._main_ui.func_points_spinBox.value(),
-            color=self.current_color,
-            use_cones=self._main_ui.cones_checkBox.isChecked(),
-        )
+    # def _plot_func(self):
+    #     self._renderer.plot_func(
+    #         func_name=self._main_ui.func_lineEdit.text(),
+    #         left_x=self._main_ui.from_doubleSpinBox.value(),
+    #         right_x=self._main_ui.to_doubleSpinBox.value(),
+    #         points=self._main_ui.func_points_spinBox.value(),
+    #         color=self.current_color,
+    #         use_cones=self._main_ui.cones_checkBox.isChecked(),
+    #     )
