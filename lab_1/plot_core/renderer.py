@@ -16,7 +16,7 @@ class CanvasStyle:
 
     grid_pen = QPen(QColor("#000000"), 1, Qt.DotLine)
     label_font_pen = QPen(QColor("#4D0505"), 1, Qt.DotLine)
-    naught_axis_pen = QPen(QColor("#000000"), 2)
+    naught_axis_pen = QPen(QColor("#000000"), 1)
 
     label_font = QFont("Segoe UI", 9)
 
@@ -51,6 +51,7 @@ class Renderer(QWidget):
         )
 
         self._builder.draw_grid()
+        self._builder.draw_naught_lines_highlighting()
 
     def resizeEvent(self, event):
         self._rebuild_scene()

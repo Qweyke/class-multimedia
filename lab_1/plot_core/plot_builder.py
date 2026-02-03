@@ -94,22 +94,23 @@ class PlotBuilder:
         # Release painter
         painter.end()
 
-    # def draw_naught_lines(self):
-    #     # Zero lines
-    #     zero_pen = QPen(Qt.black, 1.5, Qt.SolidLine)
-    #     painter.setPen(zero_pen)
-    #     if self._mapper.x_min <= 0 <= self._mapper.x_max:
-    #         top_zero = self._mapper.math_to_pixels(QPointF(0, self._mapper.y_max))
-    #         bot_zero = self._mapper.math_to_pixels(QPointF(0, self._mapper.y_min))
-    #         painter.drawLine(top_zero, bot_zero)
+    def draw_naught_lines_highlighting(self):
+        painter = QPainter(self._scene)
+        painter.setPen(self._theme.naught_axis_pen)
+        painter.setViewport(self._mapper.viewport)
 
-    #     if self._mapper.y_min <= 0 <= self._mapper.y_max:
-    #         left_zero = self._mapper.math_to_pixels(QPointF(self._mapper.x_min, 0))
-    #         right_zero = self._mapper.math_to_pixels(QPointF(self._mapper.x_max, 0))
-    #         painter.drawLine(left_zero, right_zero)
+        if self._mapper.x_min <= 0 <= self._mapper.x_max:
+            top_zero = self._mapper.math_to_pixels(QPointF(0, self._mapper.y_max))
+            bot_zero = self._mapper.math_to_pixels(QPointF(0, self._mapper.y_min))
+            painter.drawLine(top_zero, bot_zero)
 
-    #     # Release painter
-    #     painter.end()
+        if self._mapper.y_min <= 0 <= self._mapper.y_max:
+            left_zero = self._mapper.math_to_pixels(QPointF(self._mapper.x_min, 0))
+            right_zero = self._mapper.math_to_pixels(QPointF(self._mapper.x_max, 0))
+            painter.drawLine(left_zero, right_zero)
+
+        # Release painter
+        painter.end()
 
     # def draw_x_labels(self, x_values):
     #     self.painter.setPen(self.theme.label_pen)
