@@ -3,53 +3,68 @@ import sympy as sp
 
 
 class FunctionResolver:
-    def __init__(
-        self, function_symbolic: str, left_x: float, right_x: float, points_qnty: int
+    @staticmethod
+    def get_prepared_values(
+        left_x: float, right_x: float, function_symbolic: str, points_qnty: int
     ):
+        # 1. Lambdify logic (local)
         x_sym = sp.symbols("x")
         expr_sym = sp.parse_expr(function_symbolic.replace("^", "**"))
+        lambdified_func = sp.lambdify(x_sym, expr_sym, "numpy")
 
-        self._lambdified_func = sp.lambdify(x_sym, expr_sym, "numpy")
-
-        self._left_x = left_x
-        self._right_x = right_x
-
-        self._points_qnty = points_qnty
-
-    def get_prepared_values(self):
+        # 2. Raw data generation
         with np.errstate(divide="ignore", invalid="ignore"):
-            raw_x_vals = np.linspace(self._left_x, self._right_x, self._points_qnty)
-            raw_y_vals: np.array = self._lambdified_func(raw_x_vals)
+            raw_x_vals = np.linspace(left_x, right_x, points_qnty)
+            raw_y_vals = lambdified_func(raw_x_vals)
 
-        bad_vals_idxs = np.where(raw_y_vals[~np.isfinite(raw_y_vals)])[0]
+            if not isinstance(raw_y_vals, np.ndarray):
+                raw_y_vals = np.full_like(raw_x_vals, raw_y_vals)
 
-    # def parse_math_function(
-    #     func_name: str,
-    # ):
-    #     # Resolve breaking-vals
+        bad_vals_idxs = np.where(~np.isfinite(raw_y_vals))[0]
 
-    #     finite_mask = np.isfinite(y_vals)
-    #     finite_y = y_vals[finite_mask]
+        # Early return
+        if bad_vals_idxs.size == 0:
+            return raw_x_vals, raw_y_vals
 
-    #     if finite_y.size == 0:
-    #         return
+        # 3. Bounds calculation
+        finite_data = raw_y_vals[np.isfinite(raw_y_vals)]
+        if finite_data.size > 0:
+            y_min_data = finite_data.min()
+            y_max_data = finite_data.max()
+            margin = (y_max_data - y_min_data) * 5
+            upper_val = y_max_data + margin
+            lower_val = y_min_data - margin
+        else:
+            upper_val, lower_val = 100, -100
 
-    #     # Determine left-right sides
-    #     y_min_data = finite_y.min()
-    #     y_max_data = finite_y.max()
+        # 4. Processing loop
+        for id in bad_vals_idxs:
+            # Handle removable discontinuities
+            val_to_check = raw_y_vals[id]
 
-    #     # Trim asymptotes
-    #     y_range = y_max_data - y_min_data
-    #     if y_range > 1000:
-    #         y_min_data = max(y_min_data, -500)
-    #         y_max_data = min(y_max_data, 500)
+            if np.isnan(val_to_check):
+                # Skip border-points
+                if not (0 < id < len(raw_y_vals) - 1):
+                    continue
 
-    def _calculate_func_vals(self):
-        with np.errstate(divide="ignore", invalid="ignore"):
-            x_vals = np.linspace(self._left_x, self._right_x, self._points_qnty)
-            y_vals: np.array = self._lambdified_func(x_vals)
+                left_y_val, right_y_val = raw_y_vals[id - 1], raw_y_vals[id + 1]
 
-        return x_vals, y_vals
+                # Skip nan-neighborhood
+                if not (np.isfinite(left_y_val) and np.isfinite(right_y_val)):
+                    continue
 
-    def resolve_breaking_points(raw_x_vals, raw_y_vals):
-        pass
+                # Skip large gaps
+                eps = 1e-4
+                if abs(right_y_val + left_y_val) > eps:
+                    continue
+
+                # Interpolate new value for nan
+                raw_y_vals[id] = (right_y_val - left_y_val) / 2
+
+            if np.isposinf(val_to_check):
+                raw_y_vals[id] = upper_val
+
+            if np.isneginf(val_to_check):
+                raw_y_vals[id] = lower_val
+
+        return raw_x_vals, raw_y_vals

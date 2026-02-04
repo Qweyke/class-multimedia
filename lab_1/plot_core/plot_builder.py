@@ -1,11 +1,9 @@
 from __future__ import annotations
+import math
 from typing import TYPE_CHECKING
-from PySide6.QtGui import QPainter, Qt
+from PySide6.QtGui import QPainter, Qt, QPen
 from PySide6.QtCore import QPointF, QRectF
 from PIL.ImageQt import QPixmap
-
-import numpy as np
-import sympy as sp
 
 if TYPE_CHECKING:
     from plot_core.coord_mapper import CoordinateMapper
@@ -13,49 +11,34 @@ if TYPE_CHECKING:
 
 
 class PlotBuilder:
-    def __init__(
-        self,
-        mapper: CoordinateMapper = None,
-        theme: CanvasStyle = None,
-        scene: QPixmap = None,
-    ):
-        self._theme = theme
-        self._mapper = mapper
-        self._scene = scene
-
-    def draw_grid(self):
+    @staticmethod
+    def draw_grid(scene: QPixmap, mapper: CoordinateMapper, theme: CanvasStyle):
         # Setup painter
-        painter = QPainter(self._scene)
-        painter.setPen(self._theme.grid_pen)
-        painter.setViewport(self._mapper.viewport)
+        painter = QPainter(scene)
+        painter.setPen(theme.grid_pen)
+        painter.setViewport(mapper.viewport)
 
         # Draw frame
-        painter.setBrush(self._theme.plot_area_color)
-        painter.setPen(self._theme.grid_pen)
-        painter.drawRect(self._mapper.viewport)
+        painter.setBrush(theme.plot_area_color)
+        painter.setPen(theme.grid_pen)
+        painter.drawRect(mapper.viewport)
 
         # Draw vertical grid lines
-        grid_dots_x = int(
-            (self._mapper.x_max - self._mapper.x_min) / self._mapper.x_step
-        )
+        grid_dots_x = int((mapper.x_max - mapper.x_min) / mapper.x_step)
         for i in range(grid_dots_x + 1):
-            current_x = self._mapper.x_min + i * self._mapper.x_step
+            current_x = mapper.x_min + i * mapper.x_step
 
-            bot_point = self._mapper.math_to_pixels(
-                QPointF(current_x, self._mapper.y_min)
-            )
-            top_point = self._mapper.math_to_pixels(
-                QPointF(current_x, self._mapper.y_max)
-            )
+            bot_point = mapper.math_to_pixels(QPointF(current_x, mapper.y_min))
+            top_point = mapper.math_to_pixels(QPointF(current_x, mapper.y_max))
             painter.drawLine(bot_point, top_point)
 
             # Labels
-            painter.setPen(self._theme.label_font_pen)
+            painter.setPen(theme.label_font_pen)
             label_rect = QRectF(
-                bot_point.x() - (self._mapper.px_for_x * self._mapper.x_step) / 2,
+                bot_point.x() - (mapper.px_for_x * mapper.x_step) / 2,
                 bot_point.y(),
-                self._mapper.px_for_x * self._mapper.x_step,
-                self._mapper.px_for_y,
+                mapper.px_for_x * mapper.x_step,
+                mapper.px_for_y,
             )
             print(f"X label box size: {label_rect.size()}")
             painter.drawText(
@@ -65,26 +48,20 @@ class PlotBuilder:
             )
 
         # Draw horizontal grid lines
-        grid_dots_y = int(
-            (self._mapper.y_max - self._mapper.y_min) / self._mapper.y_step
-        )
+        grid_dots_y = int((mapper.y_max - mapper.y_min) / mapper.y_step)
         for i in range(grid_dots_y + 1):
-            current_y = self._mapper.y_min + i * self._mapper.y_step
+            current_y = mapper.y_min + i * mapper.y_step
 
-            left_point = self._mapper.math_to_pixels(
-                QPointF(self._mapper.x_min, current_y)
-            )
-            right_point = self._mapper.math_to_pixels(
-                QPointF(self._mapper.x_max, current_y)
-            )
+            left_point = mapper.math_to_pixels(QPointF(mapper.x_min, current_y))
+            right_point = mapper.math_to_pixels(QPointF(mapper.x_max, current_y))
             painter.drawLine(left_point, right_point)
 
-            painter.setPen(self._theme.label_font_pen)
+            painter.setPen(theme.label_font_pen)
             label_rect = QRectF(
-                left_point.x() - self._mapper.px_for_x * 1.1,
-                left_point.y() - (self._mapper.y_step * self._mapper.px_for_y) / 2,
-                self._mapper.px_for_x,
-                self._mapper.y_step * self._mapper.px_for_y,
+                left_point.x() - mapper.px_for_x * 1.1,
+                left_point.y() - (mapper.y_step * mapper.px_for_y) / 2,
+                mapper.px_for_x,
+                mapper.y_step * mapper.px_for_y,
             )
 
             print(f"Y label box size: {label_rect.size()}")
@@ -97,143 +74,67 @@ class PlotBuilder:
         # Release painter
         painter.end()
 
-    def draw_naught_lines_highlighting(self):
-        painter = QPainter(self._scene)
-        painter.setPen(self._theme.naught_axis_pen)
-        painter.setViewport(self._mapper.viewport)
+    @staticmethod
+    def draw_axis_labels(scene: QPixmap, mapper: CoordinateMapper, theme: CanvasStyle):
+        pass
 
-        if self._mapper.x_min <= 0 <= self._mapper.x_max:
-            top_zero = self._mapper.math_to_pixels(QPointF(0, self._mapper.y_max))
-            bot_zero = self._mapper.math_to_pixels(QPointF(0, self._mapper.y_min))
+    @staticmethod
+    def draw_naught_lines_highlighting(
+        scene: QPixmap, mapper: CoordinateMapper, theme: CanvasStyle
+    ):
+        painter = QPainter(scene)
+        painter.setPen(theme.naught_axis_pen)
+        painter.setViewport(mapper.viewport)
+
+        if mapper.x_min <= 0 <= mapper.x_max:
+            top_zero = mapper.math_to_pixels(QPointF(0, mapper.y_max))
+            bot_zero = mapper.math_to_pixels(QPointF(0, mapper.y_min))
             painter.drawLine(top_zero, bot_zero)
 
-        if self._mapper.y_min <= 0 <= self._mapper.y_max:
-            left_zero = self._mapper.math_to_pixels(QPointF(self._mapper.x_min, 0))
-            right_zero = self._mapper.math_to_pixels(QPointF(self._mapper.x_max, 0))
+        if mapper.y_min <= 0 <= mapper.y_max:
+            left_zero = mapper.math_to_pixels(QPointF(mapper.x_min, 0))
+            right_zero = mapper.math_to_pixels(QPointF(mapper.x_max, 0))
             painter.drawLine(left_zero, right_zero)
 
         # Release painter
         painter.end()
 
-    def draw_x_labels(self, x_values):
-        self.painter.setPen(self.theme.label_pen)
-        for x in x_values:
-            point = self.mapper.math_to_pixels(QPointF(x, self.mapper.y_min))
-            # Используем self.metrics для точного расчета
-            label_h = self.metrics.height()
-            rect = QRectF(point.x() - 25, point.y() + 5, 50, label_h)
-            self.painter.drawText(rect, Qt.AlignCenter, f"{x:.2f}")
-
-    def parse_math_function(
-        func_name: str, left_x: float, right_x: float, points_qnty: int
-    ):
-        x = sp.symbols("x")
-        expr = sp.parse_expr(func_name.replace("^", "**"))
-        lambdified_func = sp.lambdify(x, expr, "numpy")
-
-        # Resolve breaking-vals
-        with np.errstate(divide="ignore", invalid="ignore"):
-            x_vals = np.linspace(left_x, right_x, points_qnty)
-            y_vals: np.array = lambdified_func(x_vals)
-
-        finite_mask = np.isfinite(y_vals)
-        finite_y = y_vals[finite_mask]
-
-        if finite_y.size == 0:
-            return
-
-        # Determine left-right sides
-        y_min_data = finite_y.min()
-        y_max_data = finite_y.max()
-
-        # Trim asymptotes
-        y_range = y_max_data - y_min_data
-        if y_range > 1000:
-            y_min_data = max(y_min_data, -500)
-            y_max_data = min(y_max_data, 500)
-
-    def plot_func(
-        self,
+    @staticmethod
+    def draw_function(
+        scene: QPixmap,
+        mapper: CoordinateMapper,
         color,
-        style=Qt.SolidLine,
-        use_cones=True,
+        x_vals,
+        y_vals,
+        use_cones=False,
     ):
         try:
-            # Parse function
-            x = sp.symbols("x")
-            expr = sp.parse_expr(func_name.replace("^", "**"))
-            f_lambda = sp.lambdify(x, expr, "numpy")
-
-            # Resolve breaking-vals
-            with np.errstate(divide="ignore", invalid="ignore"):
-                x_vals = np.linspace(left_x, right_x, points + 1)
-                y_raw = f_lambda(x_vals)
-                y_vals = np.array(y_raw, dtype=float)
-
-            finite_mask = np.isfinite(y_vals)
-            finite_y = y_vals[finite_mask]
-
-            if finite_y.size == 0:
-                return
-
-            # Determine left-right sides
-            y_min_data = finite_y.min()
-            y_max_data = finite_y.max()
-
-            # Trim asymptotes
-            y_range = y_max_data - y_min_data
-            if y_range > 1000:
-                y_min_data = max(y_min_data, -500)
-                y_max_data = min(y_max_data, 500)
-
-            # Set trimmed bounds
-            self._coord_sys.set_bounds(
-                x_min_raw=left_x,
-                x_max_raw=right_x,
-                y_min_raw=y_min_data,
-                y_max_raw=y_max_data,
-            )
-
-            # Build adjusted grid
-            self._build_axis_grid()
-
             # Prepare for plotting
-            painter = QPainter(self._cached_pixmap)
-            painter.setViewport(self._coord_sys.viewport)
+            painter = QPainter(scene)
+            painter.setViewport(mapper.viewport)
             painter.setRenderHint(QPainter.Antialiasing)
-            painter.setClipRect(self._coord_sys.viewport)
+
+            # Cut outside-values
+            painter.setClipRect(mapper.viewport)
 
             # Plotting cycle
             if use_cones:
-                self._draw_pseudo_cones(painter, x_vals, y_vals, color)
+                # self._draw_pseudo_cones(painter, x_vals, y_vals, color)
+                pass
             else:
-                painter.setPen(QPen(color, 2, style))
+                painter.setPen(QPen(color, 2))
                 last_point = None
 
                 for i in range(len(x_vals)):
-                    if finite_mask[i]:
-                        curr_point = self._coord_sys.math_to_pixels(
-                            QPointF(x_vals[i], y_vals[i])
-                        )
-                        if last_point is not None:
-                            if (
-                                abs(y_vals[i] - y_vals[i - 1])
-                                < (y_max_data - y_min_data) * 2
-                            ):
-                                painter.drawLine(last_point, curr_point)
-                        last_point = curr_point
-                    else:
-                        last_point = None
+                    curr_point = mapper.math_to_pixels(QPointF(x_vals[i], y_vals[i]))
 
-            # Draw legend
-            self.current_plots.append(
-                {"name": func_name, "color": color, "style": style}
-            )
-            self._draw_legend(painter)
+                    if last_point is not None:
+                        painter.drawLine(last_point, curr_point)
+
+                    last_point = curr_point
 
             # Release and paint
             painter.end()
-            self.update()
 
         except Exception as e:
             print(f"Plot error: {e}")

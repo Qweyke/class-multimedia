@@ -3,9 +3,9 @@ from PIL.ImageQt import QPixmap
 from PySide6.QtCore import QRect, QPointF
 from PySide6.QtGui import QPainter, QPen, Qt, QColor, QLinearGradient, QPolygonF, QFont
 from PySide6.QtWidgets import QWidget
-import numpy as np
-import sympy as sp
 
+
+from plot_core.function_resolver import FunctionResolver
 from plot_core.plot_builder import PlotBuilder
 from plot_core.coord_mapper import CoordinateMapper
 
@@ -26,34 +26,36 @@ class Renderer(QWidget):
         super().__init__(parent)
 
         # Init and build default-scene
-        self._cached_scene = QPixmap()
-        self._builder = PlotBuilder()
-        self._rebuild_scene()
+        self._cached_scene = QPixmap(self.width(), self.height())
+        self._mapper = CoordinateMapper(x_min=-10, x_max=10, y_min=-10, y_max=10)
 
         self.current_plots = []
 
     def _rebuild_scene(self):
-        self._cached_scene = QPixmap(self.width(), self.height())
-        self._cached_scene.fill(CanvasStyle.background_color)
+        PlotBuilder.draw_grid(
+            mapper=self._mapper,
+            scene=self._cached_scene,
+            theme=CanvasStyle,
+        )
+        PlotBuilder.draw_naught_lines_highlighting(
+            mapper=self._mapper,
+            scene=self._cached_scene,
+            theme=CanvasStyle,
+        )
 
+    def _get_plotting_rect(self):
         margin_x = int(self.width() * 0.02)
         margin_y = int(self.height() * 0.02)
         plot_rect = self.contentsRect().adjusted(
             margin_x, margin_y, -margin_x, -margin_y
         )
-
-        self._builder = PlotBuilder(
-            mapper=CoordinateMapper(
-                rect=plot_rect, x_min=-10, x_max=10, y_min=-10, y_max=10
-            ),
-            scene=self._cached_scene,
-            theme=CanvasStyle,
-        )
-
-        self._builder.draw_grid()
-        self._builder.draw_naught_lines_highlighting()
+        return plot_rect
 
     def resizeEvent(self, event):
+        self._cached_scene = QPixmap(self.width(), self.height())
+        self._cached_scene.fill(CanvasStyle.background_color)
+        self._mapper.remap(new_rect=self._get_plotting_rect())
+
         self._rebuild_scene()
         self.update()
 
@@ -63,7 +65,54 @@ class Renderer(QWidget):
 
     def clear(self):
         self.current_plots = []
-        self.resizeEvent(None)
+
+        self._cached_scene = QPixmap(self.width(), self.height())
+        self._cached_scene.fill(CanvasStyle.background_color)
+        self._mapper.remap(
+            new_x_min=-10,
+            new_x_max=10,
+            new_y_min=-10,
+            new_y_max=10,
+        )
+
+        self._rebuild_scene()
+        self.update()
+
+    def plot_function(
+        self,
+        func_name,
+        left_x,
+        right_x,
+        points,
+        color,
+        use_cones,
+    ):
+        x_vals, y_vals = FunctionResolver.get_prepared_values(
+            left_x=left_x,
+            right_x=right_x,
+            function_symbolic=func_name,
+            points_qnty=points,
+        )
+
+        self._cached_scene = QPixmap(self.width(), self.height())
+        self._cached_scene.fill(CanvasStyle.background_color)
+        self._mapper.remap(
+            new_x_min=x_vals.min(),
+            new_x_max=x_vals.max(),
+            new_y_min=y_vals.min(),
+            new_y_max=y_vals.max(),
+        )
+        self._rebuild_scene()
+
+        PlotBuilder.draw_function(
+            x_vals=x_vals,
+            y_vals=y_vals,
+            mapper=self._mapper,
+            scene=self._cached_scene,
+            color=color,
+            use_cones=use_cones,
+        )
+        self.update()
 
     # def _draw_legend(self, painter: QPainter):
     #     if not self.current_plots:
@@ -156,95 +205,3 @@ class Renderer(QWidget):
     #         )
     #         painter.setBrush(base_color.darker(180))
     #         painter.drawEllipse(ellipse_rect)
-
-    # def plot_func(
-    #     self,
-    #     func_name: str,
-    #     left_x: float,
-    #     right_x: float,
-    #     points: int,
-    #     color,
-    #     style=Qt.SolidLine,
-    #     use_cones=True,
-    # ):
-    #     self.clear()
-
-    #     try:
-    #         # Parse function
-    #         x = sp.symbols("x")
-    #         expr = sp.parse_expr(func_name.replace("^", "**"))
-    #         f_lambda = sp.lambdify(x, expr, "numpy")
-
-    #         # Resolve breaking-vals
-    #         with np.errstate(divide="ignore", invalid="ignore"):
-    #             x_vals = np.linspace(left_x, right_x, points + 1)
-    #             y_raw = f_lambda(x_vals)
-    #             y_vals = np.array(y_raw, dtype=float)
-
-    #         finite_mask = np.isfinite(y_vals)
-    #         finite_y = y_vals[finite_mask]
-
-    #         if finite_y.size == 0:
-    #             return
-
-    #         # Determine left-right sides
-    #         y_min_data = finite_y.min()
-    #         y_max_data = finite_y.max()
-
-    #         # Trim asymptotes
-    #         y_range = y_max_data - y_min_data
-    #         if y_range > 1000:
-    #             y_min_data = max(y_min_data, -500)
-    #             y_max_data = min(y_max_data, 500)
-
-    #         # Set trimmed bounds
-    #         self._coord_sys.set_bounds(
-    #             x_min_raw=left_x,
-    #             x_max_raw=right_x,
-    #             y_min_raw=y_min_data,
-    #             y_max_raw=y_max_data,
-    #         )
-
-    #         # Build adjusted grid
-    #         self._build_axis_grid()
-
-    #         # Prepare for plotting
-    #         painter = QPainter(self._cached_pixmap)
-    #         painter.setViewport(self._coord_sys.viewport)
-    #         painter.setRenderHint(QPainter.Antialiasing)
-    #         painter.setClipRect(self._coord_sys.viewport)
-
-    #         # Plotting cycle
-    #         if use_cones:
-    #             self._draw_pseudo_cones(painter, x_vals, y_vals, color)
-    #         else:
-    #             painter.setPen(QPen(color, 2, style))
-    #             last_point = None
-
-    #             for i in range(len(x_vals)):
-    #                 if finite_mask[i]:
-    #                     curr_point = self._coord_sys.math_to_pixels(
-    #                         QPointF(x_vals[i], y_vals[i])
-    #                     )
-    #                     if last_point is not None:
-    #                         if (
-    #                             abs(y_vals[i] - y_vals[i - 1])
-    #                             < (y_max_data - y_min_data) * 2
-    #                         ):
-    #                             painter.drawLine(last_point, curr_point)
-    #                     last_point = curr_point
-    #                 else:
-    #                     last_point = None
-
-    #         # Draw legend
-    #         self.current_plots.append(
-    #             {"name": func_name, "color": color, "style": style}
-    #         )
-    #         self._draw_legend(painter)
-
-    #         # Release and paint
-    #         painter.end()
-    #         self.update()
-
-    #     except Exception as e:
-    #         print(f"Plot error: {e}")
