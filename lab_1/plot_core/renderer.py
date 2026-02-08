@@ -14,8 +14,8 @@ class CanvasStyle:
     background_color = QColor("#FFFFFF")
     plot_area_color = QColor("#FAECC7")
 
-    grid_pen = QPen(QColor("#000000"), 1, Qt.DotLine)
-    label_font_pen = QPen(QColor("#4D0505"), 1, Qt.DotLine)
+    grid_pen = QPen(QColor("#C5BEBE"), 1, Qt.SolidLine)
+    label_font_pen = QPen(QColor("#330505"), 1, Qt.DotLine)
     naught_axis_pen = QPen(QColor("#000000"), 1)
 
     label_font = QFont("Segoe UI", 9)
@@ -54,7 +54,7 @@ class Renderer(QWidget):
     def resizeEvent(self, event):
         self._cached_scene = QPixmap(self.width(), self.height())
         self._cached_scene.fill(CanvasStyle.background_color)
-        self._mapper.remap(new_rect=self._get_plotting_rect())
+        self._mapper.remap(new_rect=self._get_plotting_rect(), theme=CanvasStyle)
 
         self._rebuild_scene()
         self.update()
@@ -69,6 +69,7 @@ class Renderer(QWidget):
         self._cached_scene = QPixmap(self.width(), self.height())
         self._cached_scene.fill(CanvasStyle.background_color)
         self._mapper.remap(
+            theme=CanvasStyle,
             new_x_min=-10,
             new_x_max=10,
             new_y_min=-10,
@@ -97,6 +98,7 @@ class Renderer(QWidget):
         self._cached_scene = QPixmap(self.width(), self.height())
         self._cached_scene.fill(CanvasStyle.background_color)
         self._mapper.remap(
+            theme=CanvasStyle,
             new_x_min=x_vals.min(),
             new_x_max=x_vals.max(),
             new_y_min=y_vals.min(),

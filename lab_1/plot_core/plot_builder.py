@@ -1,5 +1,4 @@
 from __future__ import annotations
-import math
 from typing import TYPE_CHECKING
 from PySide6.QtGui import QPainter, Qt, QPen
 from PySide6.QtCore import QPointF, QRectF
@@ -20,63 +19,98 @@ class PlotBuilder:
 
         # Draw frame
         painter.setBrush(theme.plot_area_color)
-        painter.setPen(theme.grid_pen)
         painter.drawRect(mapper.viewport)
+        font_metrics = painter.fontMetrics()
 
         # Draw vertical grid lines
-        grid_dots_x = int((mapper.x_max - mapper.x_min) / mapper.x_step)
-        for i in range(grid_dots_x + 1):
-            current_x = mapper.x_min + i * mapper.x_step
+        # left_line_x = math.ceil(mapper.x_min / mapper.x_step) * mapper.x_step
+        # right_line_x = math.floor(mapper.x_max / mapper.x_step) * mapper.x_step
 
-            bot_point = mapper.math_to_pixels(QPointF(current_x, mapper.y_min))
-            top_point = mapper.math_to_pixels(QPointF(current_x, mapper.y_max))
+        left_line_x = mapper.x_min
+        right_line_x = mapper.x_max
+        while left_line_x <= right_line_x + (mapper.x_step / 2):
+            bot_point = mapper.math_to_pixels(QPointF(left_line_x, mapper.y_min))
+            top_point = mapper.math_to_pixels(QPointF(left_line_x, mapper.y_max))
+
+            painter.setPen(theme.grid_pen)
             painter.drawLine(bot_point, top_point)
 
-            # Labels
-            painter.setPen(theme.label_font_pen)
-            label_rect = QRectF(
-                bot_point.x() - (mapper.px_for_x * mapper.x_step) / 2,
+            # Label for x-lines
+            label_text = f"{left_line_x:.3g}"
+            text_width = font_metrics.horizontalAdvance(label_text)
+            label_text_rect = QRectF(
+                bot_point.x() - (text_width / 2),
                 bot_point.y(),
-                mapper.px_for_x * mapper.x_step,
-                mapper.px_for_y,
+                text_width,
+                font_metrics.height(),
             )
-            print(f"X label box size: {label_rect.size()}")
+            print(
+                f"X label box size: {label_text_rect.size()}, font w {text_width} h {font_metrics.height()}"
+            )
+
+            painter.setPen(theme.label_font_pen)
             painter.drawText(
-                label_rect,
-                Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop,
-                f"{current_x:.2f}",
+                label_text_rect,
+                Qt.AlignmentFlag.AlignHCenter,
+                label_text,
             )
+
+            left_line_x += mapper.x_step
 
         # Draw horizontal grid lines
-        grid_dots_y = int((mapper.y_max - mapper.y_min) / mapper.y_step)
-        for i in range(grid_dots_y + 1):
-            current_y = mapper.y_min + i * mapper.y_step
+        # bottom_line_y = math.ceil(mapper.y_min / mapper.y_step) * mapper.y_step
+        # top_line_y = math.floor(mapper.y_max / mapper.y_step) * mapper.y_step
 
-            left_point = mapper.math_to_pixels(QPointF(mapper.x_min, current_y))
-            right_point = mapper.math_to_pixels(QPointF(mapper.x_max, current_y))
+        bottom_line_y = mapper.y_min
+        top_line_y = mapper.y_max
+        while bottom_line_y <= top_line_y + (mapper.y_step / 2):
+            left_point = mapper.math_to_pixels(QPointF(mapper.x_min, bottom_line_y))
+            right_point = mapper.math_to_pixels(QPointF(mapper.x_max, bottom_line_y))
+            painter.setPen(theme.grid_pen)
             painter.drawLine(left_point, right_point)
 
-            painter.setPen(theme.label_font_pen)
-            label_rect = QRectF(
-                left_point.x() - mapper.px_for_x * 1.1,
-                left_point.y() - (mapper.y_step * mapper.px_for_y) / 2,
-                mapper.px_for_x,
-                mapper.y_step * mapper.px_for_y,
-            )
-
-            print(f"Y label box size: {label_rect.size()}")
-            painter.drawText(
-                label_rect,
-                Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight,
-                f"{current_y:.2f}",
-            )
+            bottom_line_y += mapper.y_step
 
         # Release painter
         painter.end()
 
-    @staticmethod
-    def draw_axis_labels(scene: QPixmap, mapper: CoordinateMapper, theme: CanvasStyle):
-        pass
+    # @staticmethod
+    # def draw_axis_labels(scene: QPixmap, mapper: CoordinateMapper, theme: CanvasStyle):
+    #     # Setup painter
+    #     painter = QPainter(scene)
+    #     painter.setPen(theme.label_font_pen)
+    #     painter.setViewport(mapper.viewport)
+
+    #     metrics = painter.fontMetrics()
+    #     label_text = f"{current_x:.2f}"
+
+    #     # Labels
+    #     label_rect = QRectF(
+    #         bot_point.x() - (mapper.px_for_x * mapper.x_step) / 2,
+    #         bot_point.y(),
+    #         mapper.px_for_x * mapper.x_step,
+    #         mapper.px_for_y,
+    #     )
+    #     print(f"X label box size: {label_rect.size()}")
+    #     painter.drawText(
+    #         label_rect,
+    #         Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop,
+    #         f"{current_x:.2f}",
+    #     )
+
+    #     label_rect = QRectF(
+    #         left_point.x() - mapper.px_for_x * 1.1,
+    #         left_point.y() - (mapper.y_step * mapper.px_for_y) / 2,
+    #         mapper.px_for_x,
+    #         mapper.y_step * mapper.px_for_y,
+    #     )
+
+    #     print(f"Y label box size: {label_rect.size()}")
+    #     painter.drawText(
+    #         label_rect,
+    #         Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight,
+    #         f"{current_y:.2f}",
+    #     )
 
     @staticmethod
     def draw_naught_lines_highlighting(

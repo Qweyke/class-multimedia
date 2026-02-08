@@ -111,11 +111,20 @@
       </item>
       <item>
        <widget class="QDoubleSpinBox" name="from_doubleSpinBox">
+        <property name="decimals">
+         <number>3</number>
+        </property>
         <property name="minimum">
-         <double>-9999.989999999999782</double>
+         <double>-10000.000000000000000</double>
         </property>
         <property name="maximum">
-         <double>9999.989999999999782</double>
+         <double>1000.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.001000000000000</double>
+        </property>
+        <property name="stepType">
+         <enum>QAbstractSpinBox::StepType::AdaptiveDecimalStepType</enum>
         </property>
         <property name="value">
          <double>-10.000000000000000</double>
@@ -131,11 +140,20 @@
       </item>
       <item>
        <widget class="QDoubleSpinBox" name="to_doubleSpinBox">
+        <property name="decimals">
+         <number>3</number>
+        </property>
         <property name="minimum">
-         <double>-9999.989999999999782</double>
+         <double>-1000.000000000000000</double>
         </property>
         <property name="maximum">
-         <double>9999.989999999999782</double>
+         <double>1000.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.001000000000000</double>
+        </property>
+        <property name="stepType">
+         <enum>QAbstractSpinBox::StepType::AdaptiveDecimalStepType</enum>
         </property>
         <property name="value">
          <double>10.000000000000000</double>

@@ -27,6 +27,28 @@ class MainWindow(QMainWindow):
         self._main_ui.clear_btn.clicked.connect(self._renderer.clear)
         self._main_ui.color_btn.clicked.connect(self._pick_color)
 
+        # Interval values handling
+        self.last_val_from = self._main_ui.from_doubleSpinBox.value()
+        self.last_val_to = self._main_ui.to_doubleSpinBox.value()
+        self._main_ui.from_doubleSpinBox.editingFinished.connect(
+            self._handle_from_change
+        )
+        self._main_ui.to_doubleSpinBox.editingFinished.connect(self._handle_to_change)
+
+    def _handle_from_change(self):
+        val = self._main_ui.from_doubleSpinBox.value()
+        if val >= self._main_ui.to_doubleSpinBox.value():
+            self._main_ui.from_doubleSpinBox.setValue(self.last_val_from)
+        else:
+            self.last_val_from = val
+
+    def _handle_to_change(self):
+        val = self._main_ui.to_doubleSpinBox.value()
+        if val <= self._main_ui.from_doubleSpinBox.value():
+            self._main_ui.to_doubleSpinBox.setValue(self.last_val_to)
+        else:
+            self.last_val_to = val
+
     def _pick_color(self):
         color = QColorDialog.getColor(self.current_color, self, "Choose function color")
 

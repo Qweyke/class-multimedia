@@ -15,10 +15,10 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QCheckBox, QDoubleSpinBox, QFrame,
-    QHBoxLayout, QLabel, QLineEdit, QMainWindow,
-    QPushButton, QSizePolicy, QSpinBox, QVBoxLayout,
-    QWidget)
+from PySide6.QtWidgets import (QAbstractSpinBox, QApplication, QCheckBox, QDoubleSpinBox,
+    QFrame, QHBoxLayout, QLabel, QLineEdit,
+    QMainWindow, QPushButton, QSizePolicy, QSpinBox,
+    QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -94,8 +94,11 @@ class Ui_MainWindow(object):
 
         self.from_doubleSpinBox = QDoubleSpinBox(self.centralwidget)
         self.from_doubleSpinBox.setObjectName(u"from_doubleSpinBox")
-        self.from_doubleSpinBox.setMinimum(-9999.989999999999782)
-        self.from_doubleSpinBox.setMaximum(9999.989999999999782)
+        self.from_doubleSpinBox.setDecimals(3)
+        self.from_doubleSpinBox.setMinimum(-10000.000000000000000)
+        self.from_doubleSpinBox.setMaximum(1000.000000000000000)
+        self.from_doubleSpinBox.setSingleStep(0.001000000000000)
+        self.from_doubleSpinBox.setStepType(QAbstractSpinBox.StepType.AdaptiveDecimalStepType)
         self.from_doubleSpinBox.setValue(-10.000000000000000)
 
         self.verticalLayout.addWidget(self.from_doubleSpinBox)
@@ -107,8 +110,11 @@ class Ui_MainWindow(object):
 
         self.to_doubleSpinBox = QDoubleSpinBox(self.centralwidget)
         self.to_doubleSpinBox.setObjectName(u"to_doubleSpinBox")
-        self.to_doubleSpinBox.setMinimum(-9999.989999999999782)
-        self.to_doubleSpinBox.setMaximum(9999.989999999999782)
+        self.to_doubleSpinBox.setDecimals(3)
+        self.to_doubleSpinBox.setMinimum(-1000.000000000000000)
+        self.to_doubleSpinBox.setMaximum(1000.000000000000000)
+        self.to_doubleSpinBox.setSingleStep(0.001000000000000)
+        self.to_doubleSpinBox.setStepType(QAbstractSpinBox.StepType.AdaptiveDecimalStepType)
         self.to_doubleSpinBox.setValue(10.000000000000000)
 
         self.verticalLayout.addWidget(self.to_doubleSpinBox)
