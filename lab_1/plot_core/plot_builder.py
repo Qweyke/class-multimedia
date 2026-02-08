@@ -36,16 +36,13 @@ class PlotBuilder:
             painter.drawLine(bot_point, top_point)
 
             # Label for x-lines
-            label_text = f"{left_line_x:.3g}"
+            label_text = f"{left_line_x:.5g}"
             text_width = font_metrics.horizontalAdvance(label_text)
             label_text_rect = QRectF(
                 bot_point.x() - (text_width / 2),
                 bot_point.y(),
                 text_width,
                 font_metrics.height(),
-            )
-            print(
-                f"X label box size: {label_text_rect.size()}, font w {text_width} h {font_metrics.height()}"
             )
 
             painter.setPen(theme.label_font_pen)
