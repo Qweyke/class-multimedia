@@ -131,6 +131,48 @@ class PlotBuilder:
         painter.end()
 
     @staticmethod
+    def draw_user_bounds(
+        scene: QPixmap,
+        mapper: CoordinateMapper,
+        theme: CanvasStyle,
+        left_bound: float,
+        right_bound: float,
+        top_bound: float,
+        bot_bound: float,
+    ):
+        painter = QPainter(scene)
+        painter.setViewport(mapper.viewport)
+        painter.setPen(theme.user_bounds_pen)
+        # font = painter.font()
+        # font.setBold(True)
+        # painter.setFont(font)
+        # font_metrics = painter.fontMetrics()
+
+        for val in [left_bound, right_bound]:
+            bot_point = mapper.math_to_pixels(QPointF(val, bot_bound))
+            top_point = mapper.math_to_pixels(QPointF(val, top_bound))
+
+            painter.drawLine(bot_point, top_point)
+
+            # label_text = f"{val:.5g}"
+            # text_width = font_metrics.horizontalAdvance(label_text)
+            # label_text_rect = QRectF(
+            #     bot_point.x() - (text_width / 2),
+            #     bot_point.y(),
+            #     text_width,
+            #     font_metrics.height(),
+            # )
+
+            # painter.setPen(theme.label_font_pen)
+            # painter.drawText(
+            #     label_text_rect,
+            #     Qt.AlignmentFlag.AlignHCenter,
+            #     label_text,
+            # )
+
+        painter.end()
+
+    @staticmethod
     def draw_function(
         scene: QPixmap,
         mapper: CoordinateMapper,

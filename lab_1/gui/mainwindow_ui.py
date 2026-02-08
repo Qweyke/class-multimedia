@@ -126,7 +126,7 @@ class Ui_MainWindow(object):
 
         self.func_points_spinBox = QSpinBox(self.centralwidget)
         self.func_points_spinBox.setObjectName(u"func_points_spinBox")
-        self.func_points_spinBox.setMinimum(10)
+        self.func_points_spinBox.setMinimum(5)
         self.func_points_spinBox.setMaximum(10000)
         self.func_points_spinBox.setValue(100)
 

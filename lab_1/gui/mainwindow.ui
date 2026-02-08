@@ -170,7 +170,7 @@
       <item>
        <widget class="QSpinBox" name="func_points_spinBox">
         <property name="minimum">
-         <number>10</number>
+         <number>5</number>
         </property>
         <property name="maximum">
          <number>10000</number>

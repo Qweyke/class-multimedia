@@ -16,6 +16,7 @@ class CanvasStyle:
 
     grid_pen = QPen(QColor("#C5BEBE"), 1, Qt.SolidLine)
     label_font_pen = QPen(QColor("#330505"), 1, Qt.DotLine)
+    user_bounds_pen = QPen(QColor("#E9660FFF"), 1, Qt.DotLine)
     naught_axis_pen = QPen(QColor("#000000"), 1)
 
     label_font = QFont("Segoe UI", 9)
@@ -79,7 +80,7 @@ class Renderer(QWidget):
         self._rebuild_scene()
         self.update()
 
-    def plot_function(
+    def plot_function1(
         self,
         func_name,
         left_x,
@@ -113,6 +114,69 @@ class Renderer(QWidget):
             scene=self._cached_scene,
             color=color,
             use_cones=use_cones,
+        )
+        self.update()
+
+    def plot_function(
+        self,
+        func_name,
+        left_x,
+        right_x,
+        points,
+        color,
+        use_cones,
+    ):
+        # 1. INITIAL REMAP (Survey)
+        # We pass the user's raw bounds just to let the mapper
+        # calculate the 'nice' steps and 'nice' borders.
+        self._mapper.remap(
+            theme=CanvasStyle,
+            new_x_min=left_x,
+            new_x_max=right_x,
+            # Note: We don't have Y yet, so remap will use old Y or defaults
+        )
+
+        # 2. SOLVE with 'Beauty' Bounds
+        # Now we use self._mapper.x_min/max instead of the raw left_x/right_x
+        x_vals, y_vals = FunctionResolver.get_prepared_values(
+            left_x=self._mapper.x_min,
+            right_x=self._mapper.x_max,
+            function_symbolic=func_name,
+            points_qnty=points,
+        )
+
+        # 3. SECOND REMAP (Finalize Y)
+        # Now that we have Y values, we update the mapper again.
+        # The X borders won't change (since the range is the same),
+        # but the Y borders will now be 'beautified' too.
+        self._mapper.remap(
+            theme=CanvasStyle,
+            new_y_min=y_vals.min(),
+            new_y_max=y_vals.max(),
+        )
+
+        # 4. REBUILD AND DRAW
+        self._cached_scene = QPixmap(self.width(), self.height())
+        self._cached_scene.fill(CanvasStyle.background_color)
+        self._rebuild_scene()  # Draws the grid lines based on beauty bounds
+
+        PlotBuilder.draw_function(
+            x_vals=x_vals,
+            y_vals=y_vals,
+            mapper=self._mapper,
+            scene=self._cached_scene,
+            color=color,
+            use_cones=use_cones,
+        )
+
+        PlotBuilder.draw_user_bounds(
+            theme=CanvasStyle,
+            mapper=self._mapper,
+            scene=self._cached_scene,
+            left_bound=left_x,
+            right_bound=right_x,
+            bot_bound=self._mapper.y_min,
+            top_bound=self._mapper.y_max,
         )
         self.update()
 
