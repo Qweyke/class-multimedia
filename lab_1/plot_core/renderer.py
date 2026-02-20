@@ -1,7 +1,13 @@
-import math
-from PIL.ImageQt import QPixmap
-from PySide6.QtCore import QRect, QPointF
-from PySide6.QtGui import QPainter, QPen, Qt, QColor, QLinearGradient, QPolygonF, QFont
+from PySide6.QtCore import QPointF, Qt
+from PySide6.QtGui import (
+    QPainter,
+    QPen,
+    QColor,
+    QPixmap,
+    QLinearGradient,
+    QPolygonF,
+    QFont,
+)
 from PySide6.QtWidgets import QWidget
 
 
@@ -14,9 +20,9 @@ class CanvasStyle:
     background_color = QColor("#FFFFFF")
     plot_area_color = QColor("#FAECC7")
 
-    grid_pen = QPen(QColor("#C5BEBE"), 1, Qt.SolidLine)
-    label_font_pen = QPen(QColor("#330505"), 1, Qt.DotLine)
-    user_bounds_pen = QPen(QColor("#E9660FFF"), 1, Qt.DotLine)
+    grid_pen = QPen(QColor("#C5BEBE"), 1, Qt.PenStyle.SolidLine)
+    label_font_pen = QPen(QColor("#330505"), 1, Qt.PenStyle.DotLine)
+    user_bounds_pen = QPen(QColor("#C5BEBE"), 2, Qt.PenStyle.DotLine)
     naught_axis_pen = QPen(QColor("#000000"), 1)
 
     label_font = QFont("Segoe UI", 9)
@@ -36,12 +42,12 @@ class Renderer(QWidget):
         PlotBuilder.draw_grid(
             mapper=self._mapper,
             scene=self._cached_scene,
-            theme=CanvasStyle,
+            theme=CanvasStyle(),
         )
         PlotBuilder.draw_naught_lines_highlighting(
             mapper=self._mapper,
             scene=self._cached_scene,
-            theme=CanvasStyle,
+            theme=CanvasStyle(),
         )
 
     def _get_plotting_rect(self):
@@ -70,7 +76,7 @@ class Renderer(QWidget):
         self._cached_scene = QPixmap(self.width(), self.height())
         self._cached_scene.fill(CanvasStyle.background_color)
         self._mapper.remap(
-            theme=CanvasStyle,
+            theme=CanvasStyle(),
             new_x_min=-10,
             new_x_max=10,
             new_y_min=-10,
@@ -99,7 +105,7 @@ class Renderer(QWidget):
         self._cached_scene = QPixmap(self.width(), self.height())
         self._cached_scene.fill(CanvasStyle.background_color)
         self._mapper.remap(
-            theme=CanvasStyle,
+            theme=CanvasStyle(),
             new_x_min=x_vals.min(),
             new_x_max=x_vals.max(),
             new_y_min=y_vals.min(),
@@ -126,18 +132,14 @@ class Renderer(QWidget):
         color,
         use_cones,
     ):
-        # 1. INITIAL REMAP (Survey)
-        # We pass the user's raw bounds just to let the mapper
-        # calculate the 'nice' steps and 'nice' borders.
+        # Remap with new x-bounds, which will calculate extended bounds
         self._mapper.remap(
-            theme=CanvasStyle,
+            theme=CanvasStyle(),
             new_x_min=left_x,
             new_x_max=right_x,
-            # Note: We don't have Y yet, so remap will use old Y or defaults
         )
 
-        # 2. SOLVE with 'Beauty' Bounds
-        # Now we use self._mapper.x_min/max instead of the raw left_x/right_x
+        # Calculate values with extended bounds
         x_vals, y_vals = FunctionResolver.get_prepared_values(
             left_x=self._mapper.x_min,
             right_x=self._mapper.x_max,
@@ -145,10 +147,7 @@ class Renderer(QWidget):
             points_qnty=points,
         )
 
-        # 3. SECOND REMAP (Finalize Y)
-        # Now that we have Y values, we update the mapper again.
-        # The X borders won't change (since the range is the same),
-        # but the Y borders will now be 'beautified' too.
+        # Remap with calculated y-bounds
         self._mapper.remap(
             theme=CanvasStyle,
             new_y_min=y_vals.min(),
@@ -160,6 +159,16 @@ class Renderer(QWidget):
         self._cached_scene.fill(CanvasStyle.background_color)
         self._rebuild_scene()  # Draws the grid lines based on beauty bounds
 
+        PlotBuilder.draw_user_bounds(
+            theme=CanvasStyle(),
+            mapper=self._mapper,
+            scene=self._cached_scene,
+            left_bound=left_x,
+            right_bound=right_x,
+            bot_bound=self._mapper.y_min,
+            top_bound=self._mapper.y_max,
+        )
+
         PlotBuilder.draw_function(
             x_vals=x_vals,
             y_vals=y_vals,
@@ -169,15 +178,6 @@ class Renderer(QWidget):
             use_cones=use_cones,
         )
 
-        PlotBuilder.draw_user_bounds(
-            theme=CanvasStyle,
-            mapper=self._mapper,
-            scene=self._cached_scene,
-            left_bound=left_x,
-            right_bound=right_x,
-            bot_bound=self._mapper.y_min,
-            top_bound=self._mapper.y_max,
-        )
         self.update()
 
     # def _draw_legend(self, painter: QPainter):

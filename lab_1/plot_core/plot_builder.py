@@ -1,8 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-from PySide6.QtGui import QPainter, Qt, QPen
+from PySide6.QtGui import QPainter, Qt, QPen, QPixmap
 from PySide6.QtCore import QPointF, QRectF
-from PIL.ImageQt import QPixmap
 
 if TYPE_CHECKING:
     from plot_core.coord_mapper import CoordinateMapper
@@ -185,7 +184,7 @@ class PlotBuilder:
             # Prepare for plotting
             painter = QPainter(scene)
             painter.setViewport(mapper.viewport)
-            painter.setRenderHint(QPainter.Antialiasing)
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
             # Cut outside-values
             painter.setClipRect(mapper.viewport)
