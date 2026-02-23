@@ -40,11 +40,6 @@ class Ui_MainWindow(object):
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.verticalLayout = QVBoxLayout()
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.plot_btn = QPushButton(self.centralwidget)
-        self.plot_btn.setObjectName(u"plot_btn")
-
-        self.verticalLayout.addWidget(self.plot_btn)
-
         self.clear_btn = QPushButton(self.centralwidget)
         self.clear_btn.setObjectName(u"clear_btn")
 
@@ -53,14 +48,9 @@ class Ui_MainWindow(object):
         self.cones_checkBox = QCheckBox(self.centralwidget)
         self.cones_checkBox.setObjectName(u"cones_checkBox")
         self.cones_checkBox.setEnabled(True)
-        self.cones_checkBox.setChecked(True)
+        self.cones_checkBox.setChecked(False)
 
         self.verticalLayout.addWidget(self.cones_checkBox)
-
-        self.color_btn = QPushButton(self.centralwidget)
-        self.color_btn.setObjectName(u"color_btn")
-
-        self.verticalLayout.addWidget(self.color_btn)
 
         self.func_lbl = QLabel(self.centralwidget)
         self.func_lbl.setObjectName(u"func_lbl")
@@ -77,6 +67,19 @@ class Ui_MainWindow(object):
 
         self.verticalLayout.addWidget(self.func_lineEdit)
 
+        self.funcs_frame = QFrame(self.centralwidget)
+        self.funcs_frame.setObjectName(u"funcs_frame")
+        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.funcs_frame.sizePolicy().hasHeightForWidth())
+        self.funcs_frame.setSizePolicy(sizePolicy2)
+        self.funcs_frame.setMaximumSize(QSize(200, 200))
+        self.funcs_frame.setFrameShape(QFrame.Shape.StyledPanel)
+        self.funcs_frame.setFrameShadow(QFrame.Shadow.Raised)
+
+        self.verticalLayout.addWidget(self.funcs_frame)
+
         self.add_btn = QPushButton(self.centralwidget)
         self.add_btn.setObjectName(u"add_btn")
 
@@ -84,9 +87,6 @@ class Ui_MainWindow(object):
 
         self.from_lbl = QLabel(self.centralwidget)
         self.from_lbl.setObjectName(u"from_lbl")
-        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
-        sizePolicy2.setHorizontalStretch(0)
-        sizePolicy2.setVerticalStretch(0)
         sizePolicy2.setHeightForWidth(self.from_lbl.sizePolicy().hasHeightForWidth())
         self.from_lbl.setSizePolicy(sizePolicy2)
 
@@ -152,14 +152,9 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"QweykePlotter", None))
-#if QT_CONFIG(whatsthis)
-        self.plot_btn.setWhatsThis(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Press to plot chosen function</p></body></html>", None))
-#endif // QT_CONFIG(whatsthis)
-        self.plot_btn.setText(QCoreApplication.translate("MainWindow", u"Plot", None))
         self.clear_btn.setText(QCoreApplication.translate("MainWindow", u"Clear", None))
         self.cones_checkBox.setText(QCoreApplication.translate("MainWindow", u"3D Cones", None))
-        self.color_btn.setText(QCoreApplication.translate("MainWindow", u"Choose color", None))
-        self.func_lbl.setText(QCoreApplication.translate("MainWindow", u"Function ", None))
+        self.func_lbl.setText(QCoreApplication.translate("MainWindow", u"Current function(s)", None))
         self.func_lineEdit.setText(QCoreApplication.translate("MainWindow", u"cos(x)", None))
         self.add_btn.setText(QCoreApplication.translate("MainWindow", u"Add function", None))
         self.from_lbl.setText(QCoreApplication.translate("MainWindow", u"From", None))

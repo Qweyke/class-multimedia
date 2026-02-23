@@ -86,41 +86,9 @@ class Renderer(QWidget):
         self._rebuild_scene()
         self.update()
 
-    def plot_function1(
-        self,
-        func_name,
-        left_x,
-        right_x,
-        points,
-        color,
-        use_cones,
-    ):
-        x_vals, y_vals = FunctionResolver.get_prepared_values(
-            left_x=left_x,
-            right_x=right_x,
-            function_symbolic=func_name,
-            points_qnty=points,
-        )
+    def plot_functions(self, func_items):
+        pass
 
-        self._cached_scene = QPixmap(self.width(), self.height())
-        self._cached_scene.fill(CanvasStyle.background_color)
-        self._mapper.remap(
-            theme=CanvasStyle(),
-            new_x_min=x_vals.min(),
-            new_x_max=x_vals.max(),
-            new_y_min=y_vals.min(),
-            new_y_max=y_vals.max(),
-        )
-        self._rebuild_scene()
-
-        PlotBuilder.draw_function(
-            x_vals=x_vals,
-            y_vals=y_vals,
-            mapper=self._mapper,
-            scene=self._cached_scene,
-            color=color,
-            use_cones=use_cones,
-        )
         self.update()
 
     def plot_function(
@@ -140,7 +108,7 @@ class Renderer(QWidget):
         )
 
         # Calculate values with extended bounds
-        x_vals, y_vals = FunctionResolver.get_prepared_values(
+        y_min, y_max, x_vals, y_vals = FunctionResolver.get_prepared_values(
             left_x=self._mapper.x_min,
             right_x=self._mapper.x_max,
             function_symbolic=func_name,
@@ -150,8 +118,8 @@ class Renderer(QWidget):
         # Remap with calculated y-bounds
         self._mapper.remap(
             theme=CanvasStyle,
-            new_y_min=y_vals.min(),
-            new_y_max=y_vals.max(),
+            new_y_min=y_min,
+            new_y_max=y_max,
         )
 
         # 4. REBUILD AND DRAW
