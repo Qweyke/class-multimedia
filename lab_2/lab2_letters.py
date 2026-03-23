@@ -46,7 +46,6 @@ class Letter3D:
             self.faces.append(Face(side, colors[1]))
 
     def create_letter_D(self, h, w, d, ox, bar_thickness):
-
         hw = w / 2
         hd = d / 2
         mid_y = h / 2
